@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { MobileNavMenu } from "@/components/shared/MobileNavMenu";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -22,9 +23,9 @@ export default function Home() {
             <div className="cursor-pointer text-xs text-custom-gray2 hover:text-custom-gray1 hover:underline sm:text-sm md:text-base">
               Privacy Policy
             </div>
-            <div className="cursor-pointer rounded-xl bg-custom-primary px-3 py-2 text-xs text-custom-background sm:px-4 sm:text-sm md:text-base">
+            <Link href={'/login'} className="cursor-pointer rounded-xl bg-custom-primary px-3 py-2 text-xs text-custom-background sm:px-4 sm:text-sm md:text-base">
               Clerk Login
-            </div>
+            </Link>
           </div>
         </div>
       </nav>

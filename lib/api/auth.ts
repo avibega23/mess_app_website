@@ -1,15 +1,15 @@
 import axios from "axios";
-import apiClient from "./client";
+import apiClient from "../apiClient/client";
 
 export interface LoginPayload {
     mobileNo: string;
     password: string;
 }
 
-export const loginUser = async (payload:LoginPayload) => {
+export const loginUser = async (loginPayload: LoginPayload) => {
     try {
-        const response = {data:{token:"bega"}};
-        return response.data;
+        const {data} = await apiClient.put("/auth/login", loginPayload);
+        return data.data;
     } catch (error) {
         if(axios.isAxiosError(error))
         {

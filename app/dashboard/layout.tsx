@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore'
 import { SidebarProvider,SidebarTrigger} from '@/components/ui/sidebar';
@@ -10,13 +10,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { isAuthenticated } = useAuthStore();
   const router = useRouter();
 
-  useEffect(() => {
-    if (!isAuthenticated()) {
-      router.replace('/login');
-    }
-  }, []);
+  const [mounted,setMounted] = useState(false);
+  useEffect(()=>{
+    setMounted(true);
+  },[])
+  if(!mounted) return null;
 
-  if (!isAuthenticated()) return null; // prevent flash of protected content
+
+  if (!isAuthenticated()){
+    router.replace('/login');
+    return null;
+  };
 
   return (
     <div style={{ display: 'flex' }}>
