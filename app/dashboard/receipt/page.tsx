@@ -1,5 +1,7 @@
+import ReceiptWorkbench from "@/components/receipts/ReceiptWorkbench";
+
 const Page = () => {
-    return <div>Hi</div>
+    return <ReceiptWorkbench />;
 }
 
 export default Page;

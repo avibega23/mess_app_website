@@ -1,5 +1,7 @@
+import BillsTable from "@/components/bills/BillsTable";
+
 const Page = () => {
-    return (
-        <div>Bill</div>
-    )
+    return <BillsTable />;
 }
+
+export default Page;

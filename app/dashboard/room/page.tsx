@@ -1,5 +1,7 @@
+import RoomsTable from "@/components/rooms/RoomsTable";
+
 const Page = () => {
-    return <div>Hi</div>
+    return <RoomsTable />;
 }
 
 export default Page;
