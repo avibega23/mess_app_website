@@ -30,9 +30,7 @@ export interface RowAction<TData> {
     return (
       <DropdownMenu>
         <DropdownMenuTrigger>
-          <Button variant="ghost" className="h-8 w-8 p-0">
             <MoreVertical className="h-4 w-4" />
-          </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           {visible.map((action, i) => (

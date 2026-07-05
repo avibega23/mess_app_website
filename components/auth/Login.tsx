@@ -5,14 +5,12 @@ import { useAuthStore } from '@/store/authStore';
 import { loginUser } from '@/lib/api/auth';
 import { LoginPayload, LoginPayloadSchema } from '@/types/auth/auth.types';
 import { useForm, SubmitHandler } from "react-hook-form"
-import { ChevronLeftIcon } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Spinner } from '../ui/spinner';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 export default function LoginPage() {
   const router = useRouter();
-
 
   const {
     register,
@@ -26,8 +24,16 @@ export default function LoginPage() {
   const setToken = useAuthStore((state) => state.setToken);
   const setRefreshToken = useAuthStore((state) => state.setRefreshToken);
   const setUser = useAuthStore((state) => state.setUser);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const [loading, setLoading] = useState(false);
+  const [checkAuthLoading, setCheckAuthLoading] = useState(true);
 
+  useEffect(() => {
+    if (isAuthenticated()) {
+      router.replace('/student');
+    }
+    else setCheckAuthLoading(false);
+  }, [isAuthenticated, router]);
 
   const onSubmit: SubmitHandler<LoginPayload> = async (formData) => {
     try {
@@ -37,7 +43,7 @@ export default function LoginPage() {
       setToken(data.accessToken);
       setRefreshToken(data.refreshToken);
       setUser(data.user);
-      router.push('/dashboard');
+      router.push('/student');
     } catch (error) {
       setError('root', { message: (error as Error).message });
     } finally {
@@ -45,16 +51,17 @@ export default function LoginPage() {
     }
   };
 
+  if (checkAuthLoading) {
+    return (
+      <div className="flex justify-center items-center h-dvh w-dvw">
+        <Spinner />
+      </div>
+    )
+  }
+
   return (
     <div className='w-screen h-screen flex justify-center items-center bg-custom-background px-4'>
       <form onSubmit={handleSubmit(onSubmit)} className="flex w-full max-w-sm flex-col gap-4 rounded-xl bg-background p-8 shadow-lg ring-1 ring-custom-gray0">
-        <div className='flex items-center justify-center'>
-          <button className='flex gap-0.5 text-custom-primary hover:text-custom-gray0 transition cursor-pointer' onClick={() => router.back()}>
-            <ChevronLeftIcon />
-          </button>
-          <h1 className='text-center text-2xl font-bold text-custom-primary'>Login as Clerk</h1>
-        </div>
-
         <input
           {...register("mobileNo", {
             required: "Mobile number is required",

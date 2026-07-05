@@ -80,7 +80,7 @@ export default function StudentDataTable() {
   const columns = useMemo(
     () =>
       getStudentColumns({
-        onView: (student) => router.push(`/dashboard/student/${student.id}`),
+        onView: (student) => router.push(`/dashboard/student/${student._id}`),
         onEdit: setEditStudent,
         onDelete: setDeleteStudent,
       }),
@@ -183,7 +183,7 @@ export default function StudentDataTable() {
         toolbar={toolbar}
         isFetching={isFetching}
         emptyMessage="No students match the current filters."
-        onRowClick={(student) => router.push(`/dashboard/student/${student.id}`)}
+        onRowClick={(student) => router.push(`/dashboard/student/${student._id}`)}
         pagination={
           data
             ? {
@@ -197,7 +197,7 @@ export default function StudentDataTable() {
         }
       />
 
-      <StudentFormDialog open={registerOpen} onOpenChange={setRegisterOpen} />
+      <StudentFormDialog open={registerOpen} onOpenChange={setRegisterOpen}/>
       <StudentFormDialog
         open={!!editStudent}
         onOpenChange={(open) => !open && setEditStudent(null)}

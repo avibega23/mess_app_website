@@ -10,8 +10,8 @@ export type User = {
     _id: string;
     username: string;
     mobileNo: string;
-    role: string;
-    roomNo: string;
+    messId:string;
+    hostelId:string;
 }
 
 export interface LoginResponse {

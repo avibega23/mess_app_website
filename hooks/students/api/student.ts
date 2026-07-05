@@ -8,6 +8,8 @@ import {
 import { Bill } from "@/types/bills/bill.types";
 import { bills, delay, nextFreeSlot, rooms, students } from "@/lib/mock/db";
 import { CURRENT_MONTH } from "@/lib/mock/db";
+import apiClient from "@/lib/apiClient/client";
+import { useAuthStore } from "@/store/authStore";
 
 // Real backend swap: replace each function body with the commented apiClient call.
 // import apiClient from "@/lib/apiClient/client";
@@ -15,7 +17,7 @@ import { CURRENT_MONTH } from "@/lib/mock/db";
 export const getStudents = async (
     filters: StudentFilters = {}
 ): Promise<Paginated<Student>> => {
-    // const { data } = await apiClient.get("/students", { params: filters });
+    // const { data } = await apiClient.get("client/students", { params: filters });
     // return data;
     await delay();
     const { block, floor, search, page = 1, pageSize = 10 } = filters;
@@ -64,43 +66,13 @@ export const getStudentBills = async (studentId: string): Promise<Bill[]> => {
 
 export const registerStudent = async (
     payload: RegisterStudentPayload
-): Promise<Student> => {
-    // const { data } = await apiClient.post("/students", payload);
-    // return data;
-    await delay();
-    const room = rooms.find((r) => r.id === payload.roomId);
-    if (!room) throw new Error("Room not found");
-    const slot = nextFreeSlot(room);
-    if (!slot) throw new Error(`Room ${room.roomNo} (${room.block}) is full`);
-
-    const student: Student = {
-        id: `stu-${Date.now()}`,
-        username: payload.username,
-        fatherName: payload.fatherName,
-        mobileNo: payload.mobileNo,
-        roomNo: room.roomNo,
-        slot,
-        block: room.block,
-        floor: room.floor,
-    };
-    students.push(student);
-    bills.push({
-        id: `bill-${Date.now()}`,
-        studentId: student.id,
-        studentName: student.username,
-        roomNo: student.roomNo,
-        slot: student.slot,
-        month: CURRENT_MONTH,
-        canteenBill: 0,
-        dietCount: 0,
-        specialDietCount: 0,
-        generated: false,
-        previousDue: 0,
-        lateFine: 0,
-        paidAmount: 0,
-        status: "UNPAID",
-    });
-    return { ...student };
+) => {
+    const user = useAuthStore.getState().user;
+    const newPayload : any = {
+        ...payload,
+        hostelId: user?.hostelId
+    }
+    await apiClient.post("/clerk/register", newPayload);
 };
 
 export const updateStudent = async (

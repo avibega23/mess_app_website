@@ -13,12 +13,15 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
+    Combobox,
+    ComboboxContent,
+    ComboboxEmpty,
+    ComboboxInput,
+    ComboboxItem,
+    ComboboxList,
+    ComboboxTrigger,
+    ComboboxValue,
+} from "@/components/ui/combobox"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -32,6 +35,8 @@ import {
     RegisterStudentSchema,
     Student,
 } from "@/types/students/student.types"
+import { useAuthStore } from "@/store/authStore"
+import { useRouter } from "next/navigation"
 
 interface StudentFormDialogProps {
     open: boolean
@@ -52,23 +57,45 @@ export function StudentFormDialog({
     const { data: rooms } = useGetRooms()
     const registerStudent = useRegisterStudent()
     const updateStudent = useUpdateStudent()
+    const user = useAuthStore((state) => state.user)
     const mutation = isEdit ? updateStudent : registerStudent
 
+    const router = useRouter();
+
+    if (!user) {
+        router.replace("/login")
+    }
+    const blocks = [
+        {
+            block: "A"
+        },
+        {
+            block: "B"
+        }
+    ]
+    const blockOptions = useMemo(() => {
+        if(!blocks) return;
+        return blocks.filter((b) => {
+            return blocks.some((b) => b.block === block)
+        })
+    }, [])
     const currentRoomId = useMemo(() => {
         if (!student || !rooms) return ""
         return (
-            rooms.find((r) => r.block === student.block && r.roomNo === student.roomNo)
+            rooms.find((r) => r.roomNo === student.roomNo)
                 ?.id ?? ""
         )
     }, [student, rooms])
 
     // rooms with a free slot; when editing, the student's current room stays selectable
-    const roomOptions = useMemo(() => {
+    const roomOptions : {block:string}[] = useMemo(() => {
         if (!rooms) return []
         return rooms.filter(
             (r) => r.occupantCount < r.capacity || r.id === currentRoomId
         )
     }, [rooms, currentRoomId])
+
+    if(!roomOptions) return;
 
     const {
         register,
@@ -80,24 +107,26 @@ export function StudentFormDialog({
         formState: { errors },
     } = useForm<RegisterStudentPayload>({
         resolver: zodResolver(RegisterStudentSchema),
-        defaultValues: { username: "", fatherName: "", mobileNo: "", roomId: "" },
+        defaultValues: { username: "", rollNo: "", mobileNo: "", roomNo: "", block: "" },
     })
-    const roomId = watch("roomId")
+    const roomNo = watch("roomNo")
+    const block = watch("block")
 
     useEffect(() => {
         if (!open) return
         reset({
             username: student?.username ?? "",
-            fatherName: student?.fatherName ?? "",
+            rollNo: student?.rollNo ?? "",
             mobileNo: student?.mobileNo ?? "",
-            roomId: student ? currentRoomId : defaultRoomId ?? "",
+            roomNo: student ? currentRoomId : defaultRoomId ?? "",
+            block: student?.block ?? "A"
         })
     }, [open, student, currentRoomId, defaultRoomId, reset])
 
     const onSubmit: SubmitHandler<RegisterStudentPayload> = async (payload) => {
         try {
             if (isEdit) {
-                await updateStudent.mutateAsync({ id: student.id, payload })
+                await updateStudent.mutateAsync({ id: student._id, payload })
             } else {
                 await registerStudent.mutateAsync(payload)
             }
@@ -129,10 +158,10 @@ export function StudentFormDialog({
                     </div>
 
                     <div className="flex flex-col gap-2">
-                        <Label htmlFor="fatherName">Father&apos;s Name</Label>
-                        <Input id="fatherName" placeholder="Father's name" {...register("fatherName")} />
-                        {errors.fatherName && (
-                            <p className="text-sm text-destructive">{errors.fatherName.message}</p>
+                        <Label htmlFor="rollNo">Roll No</Label>
+                        <Input id="rollNo" placeholder="Student roll number" {...register("rollNo")} />
+                        {errors.rollNo && (
+                            <p className="text-sm text-destructive">{errors.rollNo.message}</p>
                         )}
                     </div>
 
@@ -145,34 +174,66 @@ export function StudentFormDialog({
                     </div>
 
                     <div className="flex flex-col gap-2">
-                        <Label>Room</Label>
-                        <Select
-                            value={roomId || null}
-                            onValueChange={(value) =>
-                                setValue("roomId", (value as string) ?? "", { shouldValidate: true })
+                        <Label>Block</Label>
+                        <Combobox
+                            items={blockOptions}
+                            value={blockOptions.find((b) => b.block === block) ?? null}
+                            onValueChange={(blocks) =>
+                                setValue("block", blocks?.block ?? "", { shouldValidate: true })
+                            }
+                            itemToStringLabel={(block) =>
+                                `Block ${block.block}`
                             }
                         >
-                            <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Select a room with a free slot">
-                                    {(value: string | null) => {
-                                        const room = roomOptions.find((r) => r.id === value)
-                                        return room
-                                            ? `Room ${room.roomNo} · Block ${room.block}`
-                                            : "Select a room with a free slot"
-                                    }}
-                                </SelectValue>
-                            </SelectTrigger>
-                            <SelectContent>
-                                {roomOptions.map((room) => (
-                                    <SelectItem key={room.id} value={room.id}>
-                                        Room {room.roomNo} · Block {room.block} ({room.occupantCount}/
-                                        {room.capacity} filled)
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        {errors.roomId && (
-                            <p className="text-sm text-destructive">{errors.roomId.message}</p>
+                            <ComboboxTrigger className="w-full">
+                                <ComboboxValue placeholder="Select a room with a free slot" />
+                            </ComboboxTrigger>
+                            <ComboboxContent>
+                                <ComboboxInput placeholder="Search by room no or block…" />
+                                <ComboboxEmpty>No rooms found.</ComboboxEmpty>
+                                <ComboboxList>
+                                    {(block: (typeof blockOptions)[number]) => (
+                                        <ComboboxItem key={block.block} value={block}>
+                                            Block {block.block}
+                                        </ComboboxItem>
+                                    )}
+                                </ComboboxList>
+                            </ComboboxContent>
+                        </Combobox>
+                        {errors.roomNo && (
+                            <p className="text-sm text-destructive">{errors.roomNo.message}</p>
+                        )}
+                    </div>
+                    <div className="flex flex-col gap-2">
+                        <Label>Room</Label>
+                        <Combobox
+                            items={roomOptions}
+                            value={roomOptions.find((r) => r.id === roomNo) ?? null}
+                            onValueChange={(room) =>
+                                setValue("roomNo", room?.id ?? "", { shouldValidate: true })
+                            }
+                            itemToStringLabel={(room) =>
+                                `Room ${room.roomNo} · Block ${room.block}`
+                            }
+                        >
+                            <ComboboxTrigger className="w-full">
+                                <ComboboxValue placeholder="Select a room with a free slot" />
+                            </ComboboxTrigger>
+                            <ComboboxContent>
+                                <ComboboxInput placeholder="Search by room no or block…" />
+                                <ComboboxEmpty>No rooms found.</ComboboxEmpty>
+                                <ComboboxList>
+                                    {(room: (typeof roomOptions)[number]) => (
+                                        <ComboboxItem key={room.id} value={room}>
+                                            Room {room.roomNo} · Block {room.block} ({room.occupantCount}/
+                                            {room.capacity} filled)
+                                        </ComboboxItem>
+                                    )}
+                                </ComboboxList>
+                            </ComboboxContent>
+                        </Combobox>
+                        {errors.roomNo && (
+                            <p className="text-sm text-destructive">{errors.roomNo.message}</p>
                         )}
                     </div>
 
