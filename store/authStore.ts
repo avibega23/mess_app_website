@@ -1,4 +1,4 @@
-import { User } from '@/types/auth/auth.types';
+import { MessData, User } from '@/types/auth/auth.types';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
@@ -11,6 +11,8 @@ interface AuthState {
   isAuthenticated: () => boolean;
   user: User | null;
   setUser: (user: User) => void;
+  messes: MessData[] | null;
+  setMesses: (messes: MessData[]) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -19,6 +21,7 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       refreshToken: null,
       user: null,
+      messes:null,
 
       setToken: (token) => set({ token }),
       setRefreshToken: (refreshToken:string) => set({ refreshToken }),
@@ -26,6 +29,7 @@ export const useAuthStore = create<AuthState>()(
       logout: () => set({ token: null, refreshToken: null, user: null }),
 
       isAuthenticated: () => !!get().token,
+      setMesses: (messes: MessData[]) => set({ messes }),
     }),
     {
       name: 'auth-storage',

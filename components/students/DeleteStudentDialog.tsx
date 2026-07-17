@@ -1,5 +1,4 @@
 "use client"
-
 import {
     AlertDialog,
     AlertDialogContent,
@@ -29,7 +28,7 @@ export function DeleteStudentDialog({
 
     const handleDelete = async () => {
         if (!student) return
-        await deleteStudent.mutateAsync(student.id)
+        await deleteStudent.mutateAsync(student._id)
         onOpenChange(false)
         onDeleted?.()
     }
@@ -40,8 +39,7 @@ export function DeleteStudentDialog({
                 <AlertDialogHeader>
                     <AlertDialogTitle>Remove {student?.username}?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        This frees slot {student?.slot} of room {student?.roomNo} (Block{" "}
-                        {student?.block}). Bill history is kept.
+                        This frees Room {student?.roomNo} of (Block {student?.block}). Bill history is kept.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

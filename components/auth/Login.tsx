@@ -25,6 +25,7 @@ export default function LoginPage() {
   const setRefreshToken = useAuthStore((state) => state.setRefreshToken);
   const setUser = useAuthStore((state) => state.setUser);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const setMesses = useAuthStore((state) => state.setMesses);
   const [loading, setLoading] = useState(false);
   const [checkAuthLoading, setCheckAuthLoading] = useState(true);
 
@@ -43,6 +44,7 @@ export default function LoginPage() {
       setToken(data.accessToken);
       setRefreshToken(data.refreshToken);
       setUser(data.user);
+      setMesses(data.messes);
       router.push('/student');
     } catch (error) {
       setError('root', { message: (error as Error).message });

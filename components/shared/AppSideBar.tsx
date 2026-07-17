@@ -23,10 +23,10 @@ import {
 } from 'lucide-react';
 
 const navItems = [
-  { label: 'Students',  href: '/dashboard/student',  icon: Users        },
-  { label: 'Rooms',     href: '/dashboard/room',     icon: BedDouble    },
-  { label: 'Bills',     href: '/dashboard/bill',     icon: ReceiptText  },
-  { label: 'Receipts',  href: '/dashboard/receipt',  icon: FileText     },
+  { label: 'Students', href: '/student', icon: Users },
+  { label: 'Rooms', href: '/room', icon: BedDouble },
+  { label: 'Bills', href: '/bill', icon: ReceiptText },
+  { label: 'Receipts', href: '/receipt', icon: FileText },
 ];
 
 export default function AppSidebar() {
@@ -34,7 +34,7 @@ export default function AppSidebar() {
   const logout = useAuthStore((state) => state.logout);
   const router = useRouter();
 
-  const handleLogout = ()=>{
+  const handleLogout = () => {
     logout();
     router.replace('/login');
   }

@@ -1,127 +1,49 @@
-import { Paginated } from "@/types/common/api.types";
+import { ApiResponse, Paginated } from "@/types/common/api.types";
 import {
-    RegisterStudentPayload,
-    Student,
-    StudentFilters,
-    UpdateStudentPayload,
+  RegisterStudentRequest,
+  Student,
+  StudentFilters,
+  UpdateStudentRequest,
 } from "@/types/students/student.types";
 import { Bill } from "@/types/bills/bill.types";
-import { bills, delay, nextFreeSlot, rooms, students } from "@/lib/mock/db";
-import { CURRENT_MONTH } from "@/lib/mock/db";
 import apiClient from "@/lib/apiClient/client";
-import { useAuthStore } from "@/store/authStore";
-
-// Real backend swap: replace each function body with the commented apiClient call.
-// import apiClient from "@/lib/apiClient/client";
 
 export const getStudents = async (
-    filters: StudentFilters = {}
+  filters: StudentFilters = {}
 ): Promise<Paginated<Student>> => {
-    // const { data } = await apiClient.get("client/students", { params: filters });
-    // return data;
-    await delay();
-    const { block, floor, search, page = 1, pageSize = 10 } = filters;
+  const { data } = await apiClient.get<ApiResponse<Paginated<Student>>>("clerk/students", { params: filters });
 
-    let result = [...students];
-    if (block) result = result.filter((s) => s.block === block);
-    if (floor !== undefined) result = result.filter((s) => s.floor === floor);
-    if (search) {
-        const q = search.toLowerCase();
-        result = result.filter(
-            (s) =>
-                s.username.toLowerCase().includes(q) ||
-                s.mobileNo.includes(q) ||
-                s.roomNo.includes(q)
-        );
-    }
-
-    const total = result.length;
-    const start = (page - 1) * pageSize;
-    return {
-        data: result.slice(start, start + pageSize),
-        page,
-        pageSize,
-        total,
-        totalPages: Math.max(1, Math.ceil(total / pageSize)),
-    };
+  return data.data;
 };
 
 export const getStudentById = async (id: string): Promise<Student> => {
-    // const { data } = await apiClient.get(`/students/${id}`);
-    // return data;
-    await delay();
-    const student = students.find((s) => s.id === id);
-    if (!student) throw new Error("Student not found");
-    return { ...student };
+  const { data } = await apiClient.get<ApiResponse<Student>>(`/clerk/students/${id}`);
+  return data.data;
 };
 
 export const getStudentBills = async (studentId: string): Promise<Bill[]> => {
-    // const { data } = await apiClient.get(`/students/${studentId}/bills`);
-    // return data;
-    await delay();
-    return bills
-        .filter((b) => b.studentId === studentId)
-        .sort((a, b) => a.month.localeCompare(b.month));
+  const { data } = await apiClient.get<ApiResponse<Bill[]>>(`/clerk/students/${studentId}/bills`);
+  return data.data;
 };
 
 export const registerStudent = async (
-    payload: RegisterStudentPayload
+  payload: RegisterStudentRequest
 ) => {
-    const user = useAuthStore.getState().user;
-    const newPayload : any = {
-        ...payload,
-        hostelId: user?.hostelId
-    }
-    await apiClient.post("/clerk/register", newPayload);
+  await apiClient.post("/clerk/register", payload);
 };
 
 export const updateStudent = async (
-    id: string,
-    payload: UpdateStudentPayload
+  id: string,
+  payload: UpdateStudentRequest
 ): Promise<Student> => {
-    // const { data } = await apiClient.patch(`/students/${id}`, payload);
-    // return data;
-    await delay();
-    const student = students.find((s) => s.id === id);
-    if (!student) throw new Error("Student not found");
-
-    const room = rooms.find((r) => r.id === payload.roomId);
-    if (!room) throw new Error("Room not found");
-
-    const movingRooms = room.roomNo !== student.roomNo || room.block !== student.block;
-    if (movingRooms) {
-        const slot = nextFreeSlot(room);
-        if (!slot) throw new Error(`Room ${room.roomNo} (${room.block}) is full`);
-        student.roomNo = room.roomNo;
-        student.block = room.block;
-        student.floor = room.floor;
-        student.slot = slot;
-    }
-    student.username = payload.username;
-    student.fatherName = payload.fatherName;
-    student.mobileNo = payload.mobileNo;
-
-    for (const bill of bills) {
-        if (bill.studentId === id) {
-            bill.studentName = student.username;
-            bill.roomNo = student.roomNo;
-            bill.slot = student.slot;
-        }
-    }
-    return { ...student };
+  const { data } = await apiClient.patch<ApiResponse<Student>>(`/clerk/students/${id}`, payload);
+  return data.data;
 };
 
 export const deleteStudent = async (id: string): Promise<void> => {
-    // await apiClient.delete(`/students/${id}`);
-    await delay();
-    const index = students.findIndex((s) => s.id === id);
-    if (index === -1) throw new Error("Student not found");
-    students.splice(index, 1);
+  await apiClient.delete(`/clerk/students/${id}`);
 };
 
-/** Semester reset: removes every registered student. */
 export const clearAllStudents = async (): Promise<void> => {
-    // await apiClient.delete("/students");
-    await delay(700);
-    students.length = 0;
+  await apiClient.delete("/clerk/students");
 };

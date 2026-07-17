@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { MobileNavMenu } from "@/components/shared/MobileNavMenu";
+import LoginButton from "@/components/landing/LoginButton";
 import Link from "next/link";
 
 export default function Home() {
@@ -7,7 +8,7 @@ export default function Home() {
     <div className="w-full flex flex-col min-h-screen overflow-x-hidden">
       <nav className="sticky top-0 z-50 w-full bg-custom-background px-4 py-3 sm:px-6 sm:py-4 md:px-10 lg:px-20 xl:px-32 2xl:px-44">
         <div className="mx-auto flex w-full max-w-screen flex-wrap items-center justify-between gap-3">
-          <a href="/">
+          <Link href="/">
             <Image
               src="/Logo.png"
               alt="Logo"
@@ -15,7 +16,7 @@ export default function Home() {
               height={88}
               className="h-10 w-auto sm:h-11"
             />
-          </a>
+          </Link>
 
           <MobileNavMenu />
 
@@ -23,9 +24,7 @@ export default function Home() {
             <div className="cursor-pointer text-xs text-custom-gray2 hover:text-custom-gray1 hover:underline sm:text-sm md:text-base">
               Privacy Policy
             </div>
-            <Link href={'/login'} className="cursor-pointer rounded-xl bg-custom-primary px-3 py-2 text-xs text-custom-background sm:px-4 sm:text-sm md:text-base">
-              Clerk Login
-            </Link>
+            <LoginButton />
           </div>
         </div>
       </nav>
@@ -42,7 +41,7 @@ export default function Home() {
               A smart digital platform to manage hostel mess operations with ease. From real-time meal tracking to student management and admin controls, streamline everything in one place.
             </p>
             <a
-	      href="https://drive.google.com/uc?export=download&id=10NghL3GZNJn-wALCz6ZVXC7HpABCNBwB"
+              href="https://drive.google.com/uc?export=download&id=10NghL3GZNJn-wALCz6ZVXC7HpABCNBwB"
               className="mt-8 w-fit self-center rounded-xl bg-custom-primary px-6 py-3 text-sm font-semibold text-background shadow-[0_10px_25px_rgba(244,126,32,0.35)] ring-2 ring-orange-200 transition hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(244,126,32,0.45)] sm:mt-10 sm:text-base md:self-start"
             >
               Download App Now

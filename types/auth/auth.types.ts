@@ -14,8 +14,13 @@ export type User = {
     hostelId:string;
 }
 
+export type MessData = {
+    _id: string;
+    messBlock: string;
+}
 export interface LoginResponse {
     accessToken: string;
     refreshToken: string;
     user: User;
+    messes: MessData[];
 }

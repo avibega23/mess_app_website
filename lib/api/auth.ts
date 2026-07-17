@@ -1,16 +1,17 @@
 import axios from "axios";
 import apiClient from "../apiClient/client";
 import { ApiResponse } from "@/types/common/api.types";
-import { LoginResponse, User } from "@/types/auth/auth.types";
+import { LoginResponse} from "@/types/auth/auth.types";
 
 export interface LoginPayload {
     mobileNo: string;
     password: string;
 }
 
+
 export const loginUser = async (loginPayload: LoginPayload) => {
     try {
-        const {data} = await apiClient.put<ApiResponse<LoginResponse>>("/auth/login", loginPayload);
+        const {data} = await apiClient.put<ApiResponse<LoginResponse>>("/clerk/login", loginPayload);
         return data.data;
     } catch (error) {
         if(axios.isAxiosError(error))

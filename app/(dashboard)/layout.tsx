@@ -1,35 +1,33 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore'
-import { SidebarProvider,SidebarTrigger} from '@/components/ui/sidebar';
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import AppSidebar from '@/components/shared/AppSideBar';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuthStore();
+  const authenticated = useAuthStore((state) => state.isAuthenticated());
   const router = useRouter();
 
-  const [mounted,setMounted] = useState(false);
-  useEffect(()=>{
-    setMounted(true);
-  },[])
-  if(!mounted) return null;
+  useEffect(() => {
+    if (!authenticated) {
+      router.replace('/login')
+    }
+  }, [authenticated, router])
 
-
-  if (!isAuthenticated()){
-    router.replace('/login');
+  if (!authenticated) {
     return null;
   };
 
   return (
-    <div style={{ display: 'flex' }}>
+    <div className='flex'>
       <SidebarProvider>
-      <AppSidebar />
-      <main style={{ flex: 1, padding: '16px' }}>
-        <SidebarTrigger/>
-        {children}
-      </main>
+        <AppSidebar />
+        <main className='flex flex-1 p-4'>
+          <SidebarTrigger />
+          {children}
+        </main>
       </SidebarProvider>
     </div>
   );

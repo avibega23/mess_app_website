@@ -23,22 +23,36 @@ import { DeleteStudentDialog } from "@/components/students/DeleteStudentDialog"
 
 import { useGetStudents } from "@/hooks/students/queries/useGetStudents"
 import { useGetRooms } from "@/hooks/rooms/queries/useGetRooms"
-import { Student } from "@/types/students/student.types"
+import { RegisterStudentForm, Student } from "@/types/students/student.types"
+import { useAuthStore } from "@/store/authStore"
+import { MessData } from "@/types/auth/auth.types"
 
 export default function StudentDataTable() {
   const router = useRouter()
 
   const [page, setPage] = useState(1)
-  const [block, setBlock] = useState<string | null>(null)
+  const [block, setBlock] = useState<MessData | null>(null)
   const [floor, setFloor] = useState<number | null>(null)
   const [search, setSearch] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
 
   const [registerOpen, setRegisterOpen] = useState(false)
   const [clearOpen, setClearOpen] = useState(false)
-  const [editStudent, setEditStudent] = useState<Student | null>(null)
+  const [editStudent, setEditStudent] = useState<RegisterStudentForm | null>(null)
   const [deleteStudent, setDeleteStudent] = useState<Student | null>(null)
+  const messes = useAuthStore((state) => state.messes)
 
+  const toEditPayload = (student: Student): RegisterStudentForm => {
+    return {
+      name: student.username,
+      mobileNo: student.mobileNo,
+      roomNo: student.roomNo,
+      rollNo: student.rollNo,
+      block: "",
+      slot: "",
+      floorNo: "",
+    }
+  }
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 300)
     return () => clearTimeout(timer)
@@ -59,10 +73,7 @@ export default function StudentDataTable() {
   const { data, isLoading, isFetching } = useGetStudents(filters)
   const { data: rooms } = useGetRooms()
 
-  const blocks = useMemo(
-    () => [...new Set((rooms ?? []).map((r) => r.block))].sort(),
-    [rooms]
-  )
+
   const floors = useMemo(
     () => [...new Set((rooms ?? []).map((r) => r.floor))].sort((a, b) => a - b),
     [rooms]
@@ -80,8 +91,8 @@ export default function StudentDataTable() {
   const columns = useMemo(
     () =>
       getStudentColumns({
-        onView: (student) => router.push(`/dashboard/student/${student._id}`),
-        onEdit: setEditStudent,
+        onView: (student) => router.push(`/student/${student._id}`),
+        onEdit: (student) => setEditStudent(toEditPayload(student)),
         onDelete: setDeleteStudent,
       }),
     [router]
@@ -110,18 +121,19 @@ export default function StudentDataTable() {
         <Select
           value={block}
           onValueChange={(value) => {
-            setBlock(value as string | null)
+            setBlock(value as MessData | null)
             setPage(1)
           }}
+          itemToStringLabel={(value) => value ? `Block ${value.messBlock}` : "All blocks"}
         >
           <SelectTrigger className="w-36">
             <SelectValue placeholder="All blocks" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={null}>All blocks</SelectItem>
-            {blocks.map((b) => (
-              <SelectItem key={b} value={b}>
-                Block {b}
+            {messes?.map((b) => (
+              <SelectItem key={b._id} value={b}>
+                Block {b.messBlock}
               </SelectItem>
             ))}
           </SelectContent>
@@ -187,17 +199,17 @@ export default function StudentDataTable() {
         pagination={
           data
             ? {
-                page: data.page,
-                pageSize: data.pageSize,
-                total: data.total,
-                totalPages: data.totalPages,
-                onPageChange: setPage,
-              }
+              page: data.page,
+              pageSize: data.pageSize,
+              total: data.total,
+              totalPages: data.totalPages,
+              onPageChange: setPage,
+            }
             : undefined
         }
       />
 
-      <StudentFormDialog open={registerOpen} onOpenChange={setRegisterOpen}/>
+      <StudentFormDialog open={registerOpen} onOpenChange={setRegisterOpen} />
       <StudentFormDialog
         open={!!editStudent}
         onOpenChange={(open) => !open && setEditStudent(null)}
