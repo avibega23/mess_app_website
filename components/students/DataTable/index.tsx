@@ -46,11 +46,11 @@ export default function StudentDataTable() {
     return {
       name: student.username,
       mobileNo: student.mobileNo,
-      roomNo: student.roomNo,
+      roomNo: student.roomId.roomNo.toString(),
       rollNo: student.rollNo,
-      block: "",
-      slot: "",
-      floorNo: "",
+      block: student.messId.messBlock,
+      slot: student.slot,
+      floorNo: student.floorId.floorNo.toString(),
     }
   }
   useEffect(() => {

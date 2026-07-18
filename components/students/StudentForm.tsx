@@ -7,6 +7,8 @@ import { DialogFooter } from "../ui/dialog"
 import { useEffect } from "react"
 import { useStudentForm } from "@/hooks/students/local/useStudentForm"
 import { RegisterStudentForm } from "@/types/students/student.types"
+import { useAuthStore } from "@/store/authStore"
+import { useGetRooms } from "@/hooks/rooms/queries/useGetRooms"
 
 interface StudentFormProps {
   student?: RegisterStudentForm;
@@ -32,14 +34,28 @@ const StudentForm = (props: StudentFormProps) => {
     setError
   } = form;
 
-  const block = watch("block")
+  const messId = watch("messId")
   const slot = watch("slot")
-  const roomNo = watch("roomNo")
-  const floorNo = watch("floorNo")
+  const roomId = watch("roomId")
+  const floorId = watch("floorId")
 
-  const blockOptions = [
-    "A",
-    "B",
+
+  const messOptions: MessData[] = useAuthStore((state) => state.messes) ?? [];
+
+  const rooms = useGetRooms();
+
+  const roomOptions = [
+    {
+      _id: "123",
+      roomNo: 101
+    }
+  ]
+
+  const floorOptions = [
+    {
+      _id: "123",
+      floorNo: 1
+    }
   ]
 
   const slotOptions = [
@@ -47,44 +63,26 @@ const StudentForm = (props: StudentFormProps) => {
     "B"
   ]
 
-  const roomOptions = [
-    "101",
-    "102",
-    "103",
-    "104",
-    "105",
-    "106",
-    "107",
-    "108",
-    "109",
-    "110"
-  ]
-
-  const floorOptions = [
-    "1",
-    "2",
-  ]
-
   useEffect(() => {
-    const student = {
-      name: "",
-      rollNo: "",
-      mobileNo: "",
-      roomNo: "",
-      block: "",
-      slot: "",
-      floorNo: "",
-    }
     reset({
-      name: student?.name ?? "",
-      rollNo: student?.rollNo ?? "",
-      mobileNo: student?.mobileNo ?? "",
-      roomNo: student?.roomNo ?? "",
-      block: student?.block ?? "",
-      slot: student?.slot ?? "",
-      floorNo: student?.floorNo ?? "",
+      name: props.student?.name ?? "",
+      rollNo: props.student?.rollNo ?? "",
+      mobileNo: props.student?.mobileNo ?? "",
+      roomId: props.student?.roomId ?? {
+        _id: "",
+        roomNo: undefined,
+      },
+      messId: props.student?.messId ?? {
+        _id: "",
+        messBlock: "",
+      },
+      slot: props.student?.slot ?? "",
+      floorId: props.student?.floorId ?? {
+        _id: "",
+        floorNo: undefined
+      },
     })
-  }, [reset])
+  }, [reset, props.student])
 
   const onSubmit = async (data: RegisterStudentForm) => {
     try {
@@ -133,39 +131,42 @@ const StudentForm = (props: StudentFormProps) => {
       />
 
       <ComboboxField
+        label="Block"
+        options={messOptions}
+        itemToStringValue={(val) => val.messBlock}
+        onChange={(m) => setValue("messId", m ?? "", { shouldValidate: true })}
+        getLabel={(m) => `Block ${m.messBlock}`}
+        placeholder="Select a room with a free slot"
+        searchPlaceholder="Search by room no or block…"
+        emptyMessage="No rooms found."
+        error={errors.messId?.message}
+      />
+
+      <ComboboxField
         label="Floor"
         options={floorOptions}
-        value={floorNo}
-        onChange={(f) => setValue("floorNo", f ?? "", { shouldValidate: true })}
+        value={floorId}
+        onChange={(f) => setValue("floorId", f ?? "", { shouldValidate: true })}
         getLabel={(floor) => `Floor ${floor}`}
         placeholder="Select a room with a free slot"
         searchPlaceholder="Search by room no or block…"
         emptyMessage="No rooms found."
-        error={errors.floorNo?.message}
+        error={errors.floorId?.message}
+        disabled={messId === ""}
       />
 
-      <ComboboxField
-        label="Block"
-        options={blockOptions}
-        value={block}
-        onChange={(b) => setValue("block", b ?? "", { shouldValidate: true })}
-        getLabel={(block) => `Block ${block}`}
-        placeholder="Select a room with a free slot"
-        searchPlaceholder="Search by room no or block…"
-        emptyMessage="No rooms found."
-        error={errors.block?.message}
-      />
 
       <ComboboxField
         label="Room"
         options={roomOptions}
-        value={roomNo}
+        value={roomId}
         onChange={(room) => setValue("roomNo", room ?? "", { shouldValidate: true })}
         getLabel={(room) => `Room ${room}`}
         placeholder="Select a room with a free slot"
         searchPlaceholder="Search by room no or block…"
         emptyMessage="No rooms found."
-        error={errors.roomNo?.message}
+        error={errors.roomId?.message}
+        disabled={floorId === ""}
       />
 
       <ComboboxField
@@ -178,6 +179,7 @@ const StudentForm = (props: StudentFormProps) => {
         searchPlaceholder="Search by room no or block…"
         emptyMessage="No rooms found."
         error={errors.slot?.message}
+        disabled={roomId === ""}
       />
 
       {errors.root && (

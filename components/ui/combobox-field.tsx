@@ -26,6 +26,8 @@ interface ComboboxFieldProps<T extends string> {
   emptyMessage?: string
   className?: string
   containerClassName?: string
+  disabled?: boolean
+  itemToStringValue?: (val: T) => string
 }
 
 function ComboboxField<T extends string>({
@@ -40,6 +42,8 @@ function ComboboxField<T extends string>({
   emptyMessage = "No options found.",
   className,
   containerClassName,
+  disabled,
+  itemToStringValue
 }: ComboboxFieldProps<T>) {
   return (
     <div className={cn("flex flex-col gap-2", containerClassName)}>
@@ -47,8 +51,10 @@ function ComboboxField<T extends string>({
       <Combobox
         items={options}
         value={options.find((option) => option === value) ?? null}
+        itemToStringValue={itemToStringValue}
         onValueChange={onChange}
         itemToStringLabel={getLabel}
+        disabled={disabled}
       >
         <ComboboxTrigger className={cn("w-full", className)} aria-invalid={!!error}>
           <ComboboxValue placeholder={placeholder} />

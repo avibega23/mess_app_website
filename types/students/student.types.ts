@@ -4,10 +4,20 @@ export const StudentSchema = z.object({
   _id: z.string(),
   username: z.string().min(3).max(50),
   mobileNo: z.string().regex(/^[0-9]{10}$/, "Must be a 10 digit mobile number"),
-  roomNo: z.string(),
-  block: z.string(),
-  floor: z.number(),
-  rollNo: z.string()
+  slot: z.string(),
+  rollNo: z.string(),
+  roomId: z.object({
+    _id: z.string(),
+    roomNo: z.number()
+  }),
+  messId: z.object({
+    _id: z.string(),
+    messBlock: z.string(),
+  }),
+  floorId: z.object({
+    _id: z.string(),
+    floorNo: z.number()
+  }),
 });
 export type Student = z.infer<typeof StudentSchema>;
 
@@ -37,9 +47,18 @@ export const RegisterStudentFormSchema = z.object({
   mobileNo: mobileNoSchema,
   slot: z.string().min(1, { message: "Slot Is Required" }),
   rollNo: z.string().min(1, { message: "Roll number is required" }),
-  block: z.string().min(1, { message: "Mess Block is required" }),
-  roomNo: z.string().min(1, { message: "Room number is required" }),
-  floorNo: z.string().min(1, { message: "Floor No Is Required" })
+  messId: z.object({
+    _id: z.string(),
+    messBlock: z.string(),
+  }),
+  roomId: z.object({
+    _id: z.string(),
+    roomNo: z.number(),
+  }),
+  floorId: z.object({
+    _id: z.string(),
+    floorNo: z.number(),
+  })
 })
 export type RegisterStudentForm = z.infer<typeof RegisterStudentFormSchema>;
 

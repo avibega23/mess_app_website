@@ -27,13 +27,17 @@ export default function LoginPage() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const setMesses = useAuthStore((state) => state.setMesses);
   const [loading, setLoading] = useState(false);
-  const [checkAuthLoading, setCheckAuthLoading] = useState(true);
+  const [checkAuthLoading, setCheckAuthLoading] = useState(false);
 
   useEffect(() => {
-    if (isAuthenticated()) {
-      router.replace('/student');
+    const fn = () => {
+      setCheckAuthLoading(true);
+      if (isAuthenticated()) {
+        router.replace('/student');
+      }
+      setCheckAuthLoading(false);
     }
-    else setCheckAuthLoading(false);
+    fn();
   }, [isAuthenticated, router]);
 
   const onSubmit: SubmitHandler<LoginPayload> = async (formData) => {

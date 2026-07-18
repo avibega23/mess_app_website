@@ -16,6 +16,7 @@ export const registerStudentFormToRequestMapper = (payload: RegisterStudentForm)
     roomId: "",
     floorId: "",
   }
+  console.log(newPayload)
 
   return newPayload;
 }
