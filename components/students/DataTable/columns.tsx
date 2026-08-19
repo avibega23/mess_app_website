@@ -3,7 +3,7 @@
 import { ColumnDef } from "@tanstack/react-table"
 import { Eye, Pencil, Trash2 } from "lucide-react"
 
-import { Student } from "@/types/students/student.types"
+import { StudentResponse as Student } from "@/types/students/student.types"
 import { Badge } from "@/components/ui/badge"
 import { DataTableRowActions } from "@/components/shared/DataTableRowAction"
 
@@ -39,17 +39,17 @@ export function getStudentColumns({
     {
       id: "room",
       header: "Room",
-      cell: ({ row }) => `${row.original.roomNo}`,
+      cell: ({ row }) => `${row.original.roomId.roomNo} ${row.original.slot}`,
     },
     {
       accessorKey: "block",
       header: "Block",
-      cell: ({ row }) => <Badge variant="outline">Block {row.original.block}</Badge>,
+      cell: ({ row }) => <Badge variant="outline">Block {row.original.messId.messBlock}</Badge>,
     },
     {
       accessorKey: "floor",
       header: "Floor",
-      cell: ({ row }) => <Badge variant="outline">Floor {row.original.floor}</Badge>,
+      cell: ({ row }) => <Badge variant="outline">Floor {row.original.floorId.floorNo}</Badge>,
     },
     {
       id: "actions",

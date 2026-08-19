@@ -17,16 +17,20 @@ import {
 import {
   Users,
   BedDouble,
+  /*
   ReceiptText,
   FileText,
+  */
   LogOut,
 } from 'lucide-react';
 
 const navItems = [
   { label: 'Students', href: '/student', icon: Users },
   { label: 'Rooms', href: '/room', icon: BedDouble },
+  /*
   { label: 'Bills', href: '/bill', icon: ReceiptText },
   { label: 'Receipts', href: '/receipt', icon: FileText },
+  */
 ];
 
 export default function AppSidebar() {

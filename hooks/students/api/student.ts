@@ -1,7 +1,7 @@
 import { ApiResponse, Paginated } from "@/types/common/api.types";
 import {
   RegisterStudentRequest,
-  Student,
+  StudentResponse as Student,
   StudentFilters,
   UpdateStudentRequest,
 } from "@/types/students/student.types";
