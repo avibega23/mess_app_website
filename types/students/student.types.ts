@@ -35,15 +35,15 @@ export const RegisterStudentFormSchema = z.object({
   slot: z.string().min(1, { message: "Slot Is Required" }),
   rollNo: z.string().min(1, { message: "Roll number is required" }),
   messId: z.object({
-    _id: z.string(),
+    _id: z.string().min(1, { message: "Block is required" }),
     messBlock: z.string(),
   }),
   roomId: z.object({
-    _id: z.string(),
+    _id: z.string().min(1, { message: "Room is required" }),
     roomNo: z.number(),
   }),
   floorId: z.object({
-    _id: z.string(),
+    _id: z.string().min(1, { message: "Floor is required" }),
     floorNo: z.number(),
   })
 })

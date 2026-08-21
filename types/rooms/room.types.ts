@@ -1,23 +1,41 @@
-import { Student } from "@/types/students/student.types";
+import { StudentResponse as Student } from "@/types/students/student.types";
 
 export interface Room {
-    id: string;
-    roomNo: string;
-    block: string;
-    floor: number;
-    capacity: 2 | 3;
+  _id: string;
+  hostelId: string;
+  messId: {
+    _id: string;
+    messBlock: string;
+  };
+  floorId: {
+    _id: string;
+    floorNo: number
+  };
+  capacity: 2 | 3;
+  slot: [
+    {
+      label: string,
+      userId: string,
+      occupied: boolean,
+      _id: string
+    }
+  ];
+  roomNo: string;
 }
 
 export interface RoomWithOccupancy extends Room {
-    occupantCount: number;
+  occupantCount: number;
 }
 
 export interface RoomDetail extends Room {
-    occupants: Student[];
+  occupantCount: number;
 }
 
 export interface RoomFilters {
-    block?: string;
-    floor?: number;
-    onlyVacant?: boolean;
+  messId?: string;
+  floor?: number;
+  vacant?: string;
+  pageNo?: number;
+  pageLimit?: number;
 }
+

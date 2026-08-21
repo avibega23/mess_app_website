@@ -21,9 +21,12 @@ export default function Home() {
           <MobileNavMenu />
 
           <div className="hidden flex-wrap items-center justify-end gap-2 sm:gap-4 md:flex">
-            <div className="cursor-pointer text-xs text-custom-gray2 hover:text-custom-gray1 hover:underline sm:text-sm md:text-base">
+            <Link
+              href="/privacy-policy"
+              className="cursor-pointer text-xs text-custom-gray2 hover:text-custom-gray1 hover:underline sm:text-sm md:text-base"
+            >
               Privacy Policy
-            </div>
+            </Link>
             <LoginButton />
           </div>
         </div>

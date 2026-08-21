@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { RegisterStudentForm, RegisterStudentFormSchema, UpdateStudentForm } from "@/types/students/student.types"
 import { registerStudent, updateStudent } from "../api/student"
 import { toRegisterStudentRequest } from "@/lib/mappers/students/registerStudentFormToRequestMapper"
+import { useRegisterStudent } from "../mutations/useRegisterStudent"
 
 
 interface StudentFormReturn {
@@ -18,20 +19,30 @@ const defaultValues: RegisterStudentForm = {
   rollNo: "",
   mobileNo: "",
   slot: "",
-  block: "",
-  roomNo: "",
-  floorNo: "",
+  messId: {
+    _id: "",
+    messBlock: "",
+  },
+  roomId: {
+    _id: "",
+    roomNo: 0,
+  },
+  floorId: {
+    _id: "",
+    floorNo: 0,
+  },
 }
 export const useStudentForm = (): StudentFormReturn => {
   const form = useForm<RegisterStudentForm>({
     resolver: zodResolver(RegisterStudentFormSchema),
     defaultValues: defaultValues,
   })
+  const { mutate: registerStudent } = useRegisterStudent();
 
   const onRegister = async (data: RegisterStudentForm, hostelId: string): Promise<void> => {
 
     const newPayload = toRegisterStudentRequest(data, { hostelId })
-    await registerStudent(newPayload);
+    registerStudent(newPayload);
   }
 
   const onUpdate = async (data: UpdateStudentForm, hostelId: string): Promise<void> => {
