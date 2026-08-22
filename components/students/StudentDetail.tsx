@@ -30,6 +30,7 @@ import { DeleteStudentDialog } from "@/components/students/DeleteStudentDialog"
 import { useGetStudent } from "@/hooks/students/queries/useGetStudent"
 import { useGetStudentBills } from "@/hooks/students/queries/useGetStudentBills"
 import { billBalance, formatINR, formatMonth } from "@/lib/billing"
+import { toRegisterStudentForm } from "@/lib/mappers/students/studentResponseToFormMapper"
 
 export default function StudentDetail({ id }: { id: string }) {
   const router = useRouter()
@@ -53,7 +54,7 @@ export default function StudentDetail({ id }: { id: string }) {
     return (
       <div className="container mx-auto flex flex-col items-start gap-4 py-10">
         <p className="text-muted-foreground">Student not found.</p>
-        <Button variant="outline" onClick={() => router.push("/dashboard/student")}>
+        <Button variant="outline" onClick={() => router.push("/student")}>
           <ChevronLeft className="size-4" />
           Back to Students
         </Button>
@@ -80,8 +81,8 @@ export default function StudentDetail({ id }: { id: string }) {
           <div>
             <h1 className="text-2xl font-semibold">{student.username}</h1>
             <p className="text-sm text-muted-foreground">
-              Room {student.roomNo} {student.slot} · Block {student.block} · Floor{" "}
-              {student.floor}
+              Room {student?.roomId?.roomNo ?? ""} {student.slot} · Block {student?.messId?.messBlock ?? ""} · Floor{" "}
+              {student?.floorId?.floorNo ?? ""}
             </p>
           </div>
         </div>
@@ -104,23 +105,19 @@ export default function StudentDetail({ id }: { id: string }) {
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <div className="flex justify-between gap-4">
-              <span className="text-muted-foreground">Father&apos;s Name</span>
-              <span className="font-medium">{student.fatherName}</span>
-            </div>
-            <div className="flex justify-between gap-4">
               <span className="text-muted-foreground">Mobile No</span>
               <span className="font-medium">{student.mobileNo}</span>
             </div>
             <div className="flex justify-between gap-4">
               <span className="text-muted-foreground">Room</span>
               <span className="font-medium">
-                {student.roomNo} {student.slot}
+                {student?.roomId?.roomNo} {student.slot}
               </span>
             </div>
             <div className="flex justify-between gap-4">
               <span className="text-muted-foreground">Block / Floor</span>
               <span className="font-medium">
-                {student.block} / {student.floor}
+                {student?.messId?.messBlock} / {student?.floorId?.floorNo}
               </span>
             </div>
             <div className="flex justify-between gap-4">
@@ -227,7 +224,11 @@ export default function StudentDetail({ id }: { id: string }) {
         </Card>
       </div>
 
-      <StudentFormDialog open={editOpen} onOpenChange={setEditOpen} student={student} />
+      <StudentFormDialog
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        student={toRegisterStudentForm(student)}
+      />
       <DeleteStudentDialog
         student={deleteOpen ? student : null}
         onOpenChange={(open) => !open && setDeleteOpen(false)}

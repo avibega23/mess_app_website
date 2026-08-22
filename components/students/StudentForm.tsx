@@ -54,24 +54,36 @@ const StudentForm = (props: StudentFormProps) => {
   }), [messId._id, floorId.floorNo]);
 
   const { data: rooms } = useGetRooms(roomFilters, { enabled: !!messId._id });
-  const roomOptions = useMemo(
-    () => rooms?.map((room) => ({ _id: room._id, roomNo: Number(room.roomNo) })) ?? [],
-    [rooms]
-  );
+  const roomOptions = useMemo(() => {
+    const opts = rooms?.map((room) => ({ _id: room._id, roomNo: Number(room.roomNo) })) ?? [];
+    // The currently selected room may not be "vacant" (e.g. it's occupied by
+    // the student being edited), so it won't come back from the vacant-only
+    // rooms query. Keep it in the list so the field can still display it.
+    if (roomId._id && !opts.some((r) => r._id === roomId._id)) {
+      opts.push(roomId);
+    }
+    return opts;
+  }, [rooms, roomId]);
 
   const { data: floors } = useGetFloors(messId._id);
   const floorOptions = useMemo(() => floors ?? [], [floors]);
 
   const { data: room } = useGetRoom(roomId._id);
-  const slotOptions = useMemo(
-    () => room?.slot?.filter((slot) => !slot.occupied).map((slot) => slot.label) ?? [],
-    [room]
-  );
+  const slotOptions = useMemo(() => {
+    const opts = room?.slot?.filter((slot) => !slot.occupied).map((slot) => slot.label) ?? [];
+    // Same as above: the student's current slot is occupied by themself, so
+    // it gets filtered out unless we add it back explicitly.
+    if (slot && !opts.includes(slot)) {
+      opts.push(slot);
+    }
+    return opts;
+  }, [room, slot]);
 
 
 
   useEffect(() => {
     reset({
+      _id: props.student?._id ?? "",
       name: props.student?.name ?? "",
       rollNo: props.student?.rollNo ?? "",
       mobileNo: props.student?.mobileNo ?? "",
@@ -95,8 +107,7 @@ const StudentForm = (props: StudentFormProps) => {
     try {
       if (isEdit) {
         onUpdate(data, user?.hostelId ?? "");
-      }
-      {
+      } else {
         onRegister(data, user?.hostelId ?? "");
       }
       props.onOpenChange(false);
@@ -150,9 +161,9 @@ const StudentForm = (props: StudentFormProps) => {
           setValue("slot", "");
         }}
         getLabel={(m) => `Block ${m.messBlock}`}
-        placeholder="Select a room with a free slot"
-        searchPlaceholder="Search by room no or block…"
-        emptyMessage="No rooms found."
+        placeholder="Select a Mess Block"
+        searchPlaceholder="Search by Block Label"
+        emptyMessage="No Block found."
         error={errors.messId?._id?.message}
       />
 
@@ -168,9 +179,9 @@ const StudentForm = (props: StudentFormProps) => {
         }}
         itemToStringValue={(val) => `Floor ${val.floorNo}`}
         getLabel={(floor) => `Floor ${floor.floorNo}`}
-        placeholder="Select a room with a free slot"
-        searchPlaceholder="Search by room no or block…"
-        emptyMessage="No rooms found."
+        placeholder="Select a Floor"
+        searchPlaceholder="Search Floor No."
+        emptyMessage="No Floor Found"
         error={errors.floorId?._id?.message}
         disabled={messId._id === ""}
       />
@@ -201,9 +212,9 @@ const StudentForm = (props: StudentFormProps) => {
         getItemKey={(item) => item}
         onChange={(s) => setValue("slot", s ?? "", { shouldValidate: true })}
         getLabel={(slot) => `Slot ${slot}`}
-        placeholder="Select a room with a free slot"
-        searchPlaceholder="Search by room no or block…"
-        emptyMessage="No rooms found."
+        placeholder="Select a Slot"
+        searchPlaceholder="Search by Label"
+        emptyMessage="No Slot found."
         error={errors.slot?.message}
         disabled={roomId._id === ""}
       />

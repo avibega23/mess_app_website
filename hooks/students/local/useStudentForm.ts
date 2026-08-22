@@ -3,9 +3,9 @@ import { zodResolver } from "@hookform/resolvers/zod"
 
 
 import { RegisterStudentForm, RegisterStudentFormSchema, UpdateStudentForm } from "@/types/students/student.types"
-import { registerStudent, updateStudent } from "../api/student"
 import { toRegisterStudentRequest } from "@/lib/mappers/students/registerStudentFormToRequestMapper"
 import { useRegisterStudent } from "../mutations/useRegisterStudent"
+import { useUpdateStudent } from "../mutations/useUpdateStudent"
 
 
 interface StudentFormReturn {
@@ -38,6 +38,7 @@ export const useStudentForm = (): StudentFormReturn => {
     defaultValues: defaultValues,
   })
   const { mutate: registerStudent } = useRegisterStudent();
+  const { mutate: updateStudent } = useUpdateStudent();
 
   const onRegister = async (data: RegisterStudentForm, hostelId: string): Promise<void> => {
 
@@ -47,7 +48,7 @@ export const useStudentForm = (): StudentFormReturn => {
 
   const onUpdate = async (data: UpdateStudentForm, hostelId: string): Promise<void> => {
     const newPayload = toRegisterStudentRequest(data, { hostelId });
-    await updateStudent(data._id || "", newPayload)
+    updateStudent({ id: data._id ?? "", payload: newPayload });
   }
 
   return {

@@ -7,7 +7,6 @@ import { Eye, X } from "lucide-react"
 
 import { DataTable } from "@/components/shared/DataTable"
 import { DataTableRowActions } from "@/components/shared/DataTableRowAction"
-import { TableSkeleton } from "@/components/ui/Skeletons/TableSkeleton"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -106,10 +105,6 @@ export default function RoomsTable() {
         [router]
     )
 
-    if (isLoading) {
-        return <TableSkeleton />
-    }
-
     const vacantCount = (data ?? []).filter((r) => r.occupantCount < r.capacity).length
 
     const toolbar = (
@@ -183,7 +178,9 @@ export default function RoomsTable() {
             <div>
                 <h1 className="text-2xl font-semibold">Rooms</h1>
                 <p className="text-sm text-muted-foreground">
-                    {data?.length ?? 0} rooms · {vacantCount} with vacancy
+                    {isLoading
+                        ? "Loading rooms…"
+                        : `${data?.length ?? 0} rooms · ${vacantCount} with vacancy`}
                 </p>
             </div>
 
@@ -191,6 +188,7 @@ export default function RoomsTable() {
                 columns={columns}
                 data={data ?? []}
                 toolbar={toolbar}
+                isLoading={isLoading}
                 isFetching={isFetching}
                 emptyMessage="No rooms match the current filters."
                 onRowClick={(room) => router.push(`/dashboard/room/${room.id}`)}

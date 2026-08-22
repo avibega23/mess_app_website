@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation"
 import { Plus, Search, Trash2, X } from "lucide-react"
 
 import { DataTable } from "@/components/shared/DataTable"
-import { TableSkeleton } from "@/components/ui/Skeletons/TableSkeleton"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -22,11 +21,11 @@ import { ClearStudentsDialog } from "@/components/students/ClearStudentsDialog"
 import { DeleteStudentDialog } from "@/components/students/DeleteStudentDialog"
 
 import { useGetStudents } from "@/hooks/students/queries/useGetStudents"
-import { useGetRooms } from "@/hooks/rooms/queries/useGetRooms"
 import { RegisterStudentForm, StudentResponse as Student } from "@/types/students/student.types"
 import { useAuthStore } from "@/store/authStore"
 import { FloorData, MessData } from "@/types/auth/auth.types"
 import { useGetFloors } from "@/hooks/floors/queries/useGetFloors"
+import { toRegisterStudentForm } from "@/lib/mappers/students/studentResponseToFormMapper"
 
 export default function StudentDataTable() {
   const router = useRouter()
@@ -44,18 +43,6 @@ export default function StudentDataTable() {
   const messes = useAuthStore((state) => state.messes)
   const user = useAuthStore((state) => state.user)
 
-  const toEditPayload = (student: Student): RegisterStudentForm => {
-    return {
-      _id: student._id,
-      name: student.username,
-      mobileNo: student.mobileNo,
-      roomId: student.roomId,
-      rollNo: student.rollNo,
-      messId: student.messId,
-      slot: student.slot,
-      floorId: student.floorId,
-    }
-  }
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 300)
     return () => clearTimeout(timer)
@@ -91,15 +78,11 @@ export default function StudentDataTable() {
     () =>
       getStudentColumns({
         onView: (student) => router.push(`/student/${student._id}`),
-        onEdit: (student) => setEditStudent(toEditPayload(student)),
+        onEdit: (student) => setEditStudent(toRegisterStudentForm(student)),
         onDelete: setDeleteStudent,
       }),
     [router]
   )
-
-  if (isLoading) {
-    return <TableSkeleton />
-  }
 
   const toolbar = (
     <div className="flex flex-wrap items-center justify-between gap-2">
@@ -185,7 +168,7 @@ export default function StudentDataTable() {
       <div>
         <h1 className="text-2xl font-semibold">Students</h1>
         <p className="text-sm text-muted-foreground">
-          {data?.total ?? 0} students registered
+          {isLoading ? "Loading students…" : `${data?.total ?? 0} students registered`}
         </p>
       </div>
 
@@ -193,6 +176,7 @@ export default function StudentDataTable() {
         columns={columns}
         data={data?.data ?? []}
         toolbar={toolbar}
+        isLoading={isLoading}
         isFetching={isFetching}
         emptyMessage="No students match the current filters."
         onRowClick={(student) => router.push(`/student/${student._id}`)}
