@@ -14,7 +14,7 @@ import {
 import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
 
-interface ComboboxFieldProps<T extends string> {
+interface ComboboxFieldProps<T> {
   label: string
   options: T[]
   value?: T | null
@@ -27,30 +27,37 @@ interface ComboboxFieldProps<T extends string> {
   className?: string
   containerClassName?: string
   disabled?: boolean
+  getItemKey: (item: T) => string
   itemToStringValue?: (val: T) => string
 }
 
-function ComboboxField<T extends string>({
+function ComboboxField<T>({
   label,
   options,
   value,
   onChange,
   error,
-  getLabel = (item) => item,
+  getLabel = (item) => String(item),
   placeholder = "Select an option",
   searchPlaceholder = "Search…",
+  getItemKey,
   emptyMessage = "No options found.",
   className,
   containerClassName,
   disabled,
-  itemToStringValue
+  itemToStringValue = (item) => String(item)
 }: ComboboxFieldProps<T>) {
+  const selectedOption =
+    value != null
+      ? options.find((option) => itemToStringValue(option) === itemToStringValue(value)) ?? null
+      : null
+
   return (
     <div className={cn("flex flex-col gap-2", containerClassName)}>
       <Label>{label}</Label>
       <Combobox
         items={options}
-        value={options.find((option) => option === value) ?? null}
+        value={selectedOption}
         itemToStringValue={itemToStringValue}
         onValueChange={onChange}
         itemToStringLabel={getLabel}
@@ -64,7 +71,7 @@ function ComboboxField<T extends string>({
           <ComboboxEmpty>{emptyMessage}</ComboboxEmpty>
           <ComboboxList>
             {(item: T) => (
-              <ComboboxItem key={item} value={item}>
+              <ComboboxItem key={getItemKey(item)} value={item}>
                 {getLabel(item)}
               </ComboboxItem>
             )}

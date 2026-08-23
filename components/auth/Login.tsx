@@ -27,7 +27,7 @@ export default function LoginPage() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const setMesses = useAuthStore((state) => state.setMesses);
   const [loading, setLoading] = useState(false);
-  const [checkAuthLoading, setCheckAuthLoading] = useState(false);
+  const [checkAuthLoading, setCheckAuthLoading] = useState(true);
 
   useEffect(() => {
     const fn = () => {

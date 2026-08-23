@@ -1,6 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
 
 import {
   ColumnDef,
@@ -36,6 +37,10 @@ interface DataTableProps<TData, TValue> {
   pagination?: ServerPagination
   /** Dims the table while a background refetch is in flight */
   isFetching?: boolean
+  /** Renders skeleton rows in place of data cells for the initial load */
+  isLoading?: boolean
+  /** Number of skeleton rows to show while isLoading — defaults to the page size */
+  skeletonRowCount?: number
   onRowClick?: (row: TData) => void
   emptyMessage?: string
 }
@@ -46,6 +51,8 @@ export function DataTable<TData, TValue>({
   toolbar,
   pagination,
   isFetching,
+  isLoading,
+  skeletonRowCount = pagination?.pageSize ?? 8,
   onRowClick,
   emptyMessage = "No results.",
 }: DataTableProps<TData, TValue>) {
@@ -99,7 +106,17 @@ export function DataTable<TData, TValue>({
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {isLoading ? (
+              Array.from({ length: skeletonRowCount }).map((_, rowIndex) => (
+                <TableRow key={`skeleton-${rowIndex}`}>
+                  {columns.map((_, colIndex) => (
+                    <TableCell key={colIndex}>
+                      <Skeleton className="h-4 w-full" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
@@ -139,7 +156,7 @@ export function DataTable<TData, TValue>({
                 ? pagination.onPageChange(pagination.page - 1)
                 : table.previousPage()
             }
-            disabled={!canPrevious}
+            disabled={!canPrevious || isLoading}
           >
             Previous
           </Button>
@@ -151,7 +168,7 @@ export function DataTable<TData, TValue>({
                 ? pagination.onPageChange(pagination.page + 1)
                 : table.nextPage()
             }
-            disabled={!canNext}
+            disabled={!canNext || isLoading}
           >
             Next
           </Button>

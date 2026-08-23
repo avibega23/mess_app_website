@@ -3,14 +3,15 @@ import { zodResolver } from "@hookform/resolvers/zod"
 
 
 import { RegisterStudentForm, RegisterStudentFormSchema, UpdateStudentForm } from "@/types/students/student.types"
-import { registerStudent, updateStudent } from "../api/student"
-import { registerStudentFormToRequestMapper } from "@/lib/mappers/students/registerStudentFormToRequestMapper"
+import { toRegisterStudentRequest } from "@/lib/mappers/students/registerStudentFormToRequestMapper"
+import { useRegisterStudent } from "../mutations/useRegisterStudent"
+import { useUpdateStudent } from "../mutations/useUpdateStudent"
 
 
 interface StudentFormReturn {
   form: UseFormReturn<RegisterStudentForm>,
-  onUpdate: (data: RegisterStudentForm) => void,
-  onRegister: (data: RegisterStudentForm) => void,
+  onUpdate: (data: RegisterStudentForm, hostelId: string) => void,
+  onRegister: (data: RegisterStudentForm, hostelId: string) => void,
   isSubmitting: boolean,
 }
 const defaultValues: RegisterStudentForm = {
@@ -18,25 +19,36 @@ const defaultValues: RegisterStudentForm = {
   rollNo: "",
   mobileNo: "",
   slot: "",
-  block: "",
-  roomNo: "",
-  floorNo: "",
+  messId: {
+    _id: "",
+    messBlock: "",
+  },
+  roomId: {
+    _id: "",
+    roomNo: 0,
+  },
+  floorId: {
+    _id: "",
+    floorNo: 0,
+  },
 }
 export const useStudentForm = (): StudentFormReturn => {
   const form = useForm<RegisterStudentForm>({
     resolver: zodResolver(RegisterStudentFormSchema),
     defaultValues: defaultValues,
   })
+  const { mutate: registerStudent } = useRegisterStudent();
+  const { mutate: updateStudent } = useUpdateStudent();
 
-  const onRegister = async (data: RegisterStudentForm): Promise<void> => {
+  const onRegister = async (data: RegisterStudentForm, hostelId: string): Promise<void> => {
 
-    const newPayload = registerStudentFormToRequestMapper(data)
-    await registerStudent(newPayload);
+    const newPayload = toRegisterStudentRequest(data, { hostelId })
+    registerStudent(newPayload);
   }
 
-  const onUpdate = async (data: UpdateStudentForm): Promise<void> => {
-    const newPayload = registerStudentFormToRequestMapper(data);
-    await updateStudent(data._id || "", newPayload)
+  const onUpdate = async (data: UpdateStudentForm, hostelId: string): Promise<void> => {
+    const newPayload = toRegisterStudentRequest(data, { hostelId });
+    updateStudent({ id: data._id ?? "", payload: newPayload });
   }
 
   return {

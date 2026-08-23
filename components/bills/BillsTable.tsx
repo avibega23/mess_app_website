@@ -9,7 +9,6 @@ import { DataTable } from "@/components/shared/DataTable"
 import { DataTableRowActions } from "@/components/shared/DataTableRowAction"
 import { BillStatusBadge } from "@/components/shared/BillStatusBadge"
 import { MonthPicker } from "@/components/shared/MonthPicker"
-import { TableSkeleton } from "@/components/ui/Skeletons/TableSkeleton"
 import { RecordPaymentDialog } from "@/components/bills/RecordPaymentDialog"
 
 import { useGetBills } from "@/hooks/bills/queries/useGetBills"
@@ -146,10 +145,6 @@ export default function BillsTable() {
     [router]
   )
 
-  if (isLoading) {
-    return <TableSkeleton />
-  }
-
   const monthGenerated = data?.data.every((b) => b.generated) ?? false
   const dueDate = data?.data.find((b) => b.dueDate)?.dueDate
 
@@ -190,6 +185,7 @@ export default function BillsTable() {
         columns={columns}
         data={data?.data ?? []}
         toolbar={toolbar}
+        isLoading={isLoading}
         isFetching={isFetching}
         emptyMessage={`No bills for ${formatMonth(month)}.`}
         pagination={

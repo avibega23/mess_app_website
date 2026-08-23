@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 export function MobileNavMenu() {
   const [isOpen, setIsOpen] = useState(false);
@@ -42,12 +43,12 @@ export function MobileNavMenu() {
       {isOpen ? (
         <div className="absolute top-full right-4 left-4 mt-3 rounded-xl border border-custom-gray0 bg-white/95 p-3 shadow-sm backdrop-blur sm:right-6 sm:left-6">
           <div className="flex flex-col gap-2">
-            <a
-              href="#"
+            <Link
+              href="/privacy-policy"
               className="rounded-lg px-3 py-2 text-sm text-custom-gray2 transition hover:bg-custom-gray0"
             >
               Privacy Policy
-            </a>
+            </Link>
             <a
               href="#"
               className="rounded-lg bg-custom-primary px-3 py-2 text-center text-sm font-medium text-custom-background transition hover:opacity-90"

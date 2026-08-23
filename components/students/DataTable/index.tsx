@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation"
 import { Plus, Search, Trash2, X } from "lucide-react"
 
 import { DataTable } from "@/components/shared/DataTable"
-import { TableSkeleton } from "@/components/ui/Skeletons/TableSkeleton"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -22,17 +21,18 @@ import { ClearStudentsDialog } from "@/components/students/ClearStudentsDialog"
 import { DeleteStudentDialog } from "@/components/students/DeleteStudentDialog"
 
 import { useGetStudents } from "@/hooks/students/queries/useGetStudents"
-import { useGetRooms } from "@/hooks/rooms/queries/useGetRooms"
-import { RegisterStudentForm, Student } from "@/types/students/student.types"
+import { RegisterStudentForm, StudentResponse as Student } from "@/types/students/student.types"
 import { useAuthStore } from "@/store/authStore"
-import { MessData } from "@/types/auth/auth.types"
+import { FloorData, MessData } from "@/types/auth/auth.types"
+import { useGetFloors } from "@/hooks/floors/queries/useGetFloors"
+import { toRegisterStudentForm } from "@/lib/mappers/students/studentResponseToFormMapper"
 
 export default function StudentDataTable() {
   const router = useRouter()
 
   const [page, setPage] = useState(1)
   const [block, setBlock] = useState<MessData | null>(null)
-  const [floor, setFloor] = useState<number | null>(null)
+  const [floor, setFloor] = useState<FloorData | null>(null)
   const [search, setSearch] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
 
@@ -41,18 +41,8 @@ export default function StudentDataTable() {
   const [editStudent, setEditStudent] = useState<RegisterStudentForm | null>(null)
   const [deleteStudent, setDeleteStudent] = useState<Student | null>(null)
   const messes = useAuthStore((state) => state.messes)
+  const user = useAuthStore((state) => state.user)
 
-  const toEditPayload = (student: Student): RegisterStudentForm => {
-    return {
-      name: student.username,
-      mobileNo: student.mobileNo,
-      roomNo: student.roomId.roomNo.toString(),
-      rollNo: student.rollNo,
-      block: student.messId.messBlock,
-      slot: student.slot,
-      floorNo: student.floorId.floorNo.toString(),
-    }
-  }
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 300)
     return () => clearTimeout(timer)
@@ -63,21 +53,17 @@ export default function StudentDataTable() {
     () => ({
       page,
       pageSize: 10,
-      block: block ?? undefined,
-      floor: floor ?? undefined,
-      search: debouncedSearch || undefined,
+      hostelId: user?.hostelId ?? undefined,
+      messId: block?._id ?? undefined,
+      floor: floor?.floorNo ?? undefined,
+      search: debouncedSearch ?? undefined,
     }),
-    [page, block, floor, debouncedSearch]
+    [page, block, floor, debouncedSearch, user]
   )
 
   const { data, isLoading, isFetching } = useGetStudents(filters)
-  const { data: rooms } = useGetRooms()
-
-
-  const floors = useMemo(
-    () => [...new Set((rooms ?? []).map((r) => r.floor))].sort((a, b) => a - b),
-    [rooms]
-  )
+  const { data: floorData } = useGetFloors(block?._id ?? "");
+  const floors = floorData || [];
 
   const hasFilters = block !== null || floor !== null || search !== ""
 
@@ -92,15 +78,11 @@ export default function StudentDataTable() {
     () =>
       getStudentColumns({
         onView: (student) => router.push(`/student/${student._id}`),
-        onEdit: (student) => setEditStudent(toEditPayload(student)),
+        onEdit: (student) => setEditStudent(toRegisterStudentForm(student)),
         onDelete: setDeleteStudent,
       }),
     [router]
   )
-
-  if (isLoading) {
-    return <TableSkeleton />
-  }
 
   const toolbar = (
     <div className="flex flex-wrap items-center justify-between gap-2">
@@ -142,18 +124,19 @@ export default function StudentDataTable() {
         <Select
           value={floor}
           onValueChange={(value) => {
-            setFloor(value as number | null)
+            setFloor(value as FloorData | null)
             setPage(1)
           }}
+          itemToStringLabel={(value) => value ? `Floor ${value.floorNo}` : "All Floors"}
         >
-          <SelectTrigger className="w-36">
+          <SelectTrigger className="w-36" disabled={block == null}>
             <SelectValue placeholder="All floors" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={null}>All floors</SelectItem>
             {floors.map((f) => (
-              <SelectItem key={f} value={f}>
-                Floor {f}
+              <SelectItem key={f._id} value={f}>
+                Floor {f.floorNo}
               </SelectItem>
             ))}
           </SelectContent>
@@ -185,7 +168,7 @@ export default function StudentDataTable() {
       <div>
         <h1 className="text-2xl font-semibold">Students</h1>
         <p className="text-sm text-muted-foreground">
-          {data?.total ?? 0} students registered
+          {isLoading ? "Loading students…" : `${data?.total ?? 0} students registered`}
         </p>
       </div>
 
@@ -193,9 +176,10 @@ export default function StudentDataTable() {
         columns={columns}
         data={data?.data ?? []}
         toolbar={toolbar}
+        isLoading={isLoading}
         isFetching={isFetching}
         emptyMessage="No students match the current filters."
-        onRowClick={(student) => router.push(`/dashboard/student/${student._id}`)}
+        onRowClick={(student) => router.push(`/student/${student._id}`)}
         pagination={
           data
             ? {

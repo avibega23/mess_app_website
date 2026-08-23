@@ -1,26 +1,31 @@
 import * as z from "zod"
 
 export const LoginPayloadSchema = z.object({
-    mobileNo: z.string().regex(/^[0-9]{10}$/),
-    password: z.string().min(6).max(100)
+  mobileNo: z.string().regex(/^[0-9]{10}$/),
+  password: z.string().min(6).max(100)
 });
 export type LoginPayload = z.infer<typeof LoginPayloadSchema>;
 
 export type User = {
-    _id: string;
-    username: string;
-    mobileNo: string;
-    messId:string;
-    hostelId:string;
+  _id: string;
+  username: string;
+  mobileNo: string;
+  messId: string;
+  hostelId: string;
 }
 
 export type MessData = {
-    _id: string;
-    messBlock: string;
+  _id: string;
+  messBlock: string;
+}
+
+export type FloorData = {
+  _id: string;
+  floorNo: number;
 }
 export interface LoginResponse {
-    accessToken: string;
-    refreshToken: string;
-    user: User;
-    messes: MessData[];
+  accessToken: string;
+  refreshToken: string;
+  user: User;
+  messes: MessData[];
 }
