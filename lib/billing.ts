@@ -111,3 +111,24 @@ export function formatMonth(month: string): string {
         year: "numeric",
     });
 }
+
+/** YYYY-MM for the given date (defaults to today). */
+export function toMonthKey(date = new Date()): string {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, "0");
+    return `${yyyy}-${mm}`;
+}
+
+/** Billing month currently in focus (calendar month at module load). */
+export const CURRENT_MONTH = toMonthKey();
+
+/**
+ * Contiguous YYYY-MM keys ending at `CURRENT_MONTH`.
+ * Used by month pickers for bills / receipts.
+ */
+export const MONTHS: string[] = Array.from({ length: 12 }, (_, i) => {
+    const d = new Date();
+    d.setDate(1);
+    d.setMonth(d.getMonth() - (11 - i));
+    return toMonthKey(d);
+});

@@ -127,10 +127,9 @@ function getBillColumns({
     },
   ]
 }
-
+/*
 export default function BillsTable() {
   const router = useRouter()
-  const [month, setMonth] = useState(CURRENT_MONTH)
   const [page, setPage] = useState(1)
   const [paymentBill, setPaymentBill] = useState<Bill | null>(null)
 
@@ -208,3 +207,8 @@ export default function BillsTable() {
     </div>
   )
 }
+*/
+
+const BillsTable = () => <div></div>
+
+export default BillsTable;
