@@ -11,18 +11,21 @@ import {
 import {
   RegisterStudentForm,
 } from "@/types/students/student.types"
+import { Room } from "@/types/rooms/room.types"
 import StudentForm from "./StudentForm"
 
 interface StudentFormDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   student?: RegisterStudentForm
+  defaultRoom?: Room
 }
 
 export function StudentFormDialog({
   open,
   onOpenChange,
   student,
+  defaultRoom,
 }: StudentFormDialogProps) {
 
   const isEdit = !!student;
@@ -38,7 +41,7 @@ export function StudentFormDialog({
               : "Add a student to a room that has a free slot."}
           </DialogDescription>
         </DialogHeader>
-        <StudentForm student={student} onOpenChange={onOpenChange} />
+        <StudentForm student={student} defaultRoom={defaultRoom} onOpenChange={onOpenChange} />
       </DialogContent>
     </Dialog>
   )

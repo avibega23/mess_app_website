@@ -14,9 +14,9 @@ interface PaginatedRoomsResponse {
 
 export const getRooms = async (
   filters: RoomFilters = {}
-): Promise<RoomWithOccupancy[]> => {
+): Promise<PaginatedRoomsResponse> => {
   const { data } = await apiClient.get<ApiResponse<PaginatedRoomsResponse>>("/clerk/rooms", { params: filters });
-  return data.data.data;
+  return data.data;
 };
 
 export const getRoomById = async (id: string): Promise<RoomDetail> => {

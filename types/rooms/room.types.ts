@@ -1,4 +1,4 @@
-import { StudentResponse as Student } from "@/types/students/student.types";
+import { StudentResponse as Student, StudentResponse } from "@/types/students/student.types";
 
 export interface Room {
   _id: string;
@@ -24,11 +24,13 @@ export interface Room {
 }
 
 export interface RoomWithOccupancy extends Room {
-  occupantCount: number;
+  occupiedCount: number;
 }
 
 export interface RoomDetail extends Room {
-  occupantCount: number;
+  occupiedCount: number;
+  occupants: StudentResponse[]
+
 }
 
 export interface RoomFilters {
