@@ -10,12 +10,13 @@ import { RegisterStudentForm } from "@/types/students/student.types"
 import { useAuthStore } from "@/store/authStore"
 import { useGetRooms } from "@/hooks/rooms/queries/useGetRooms"
 import { MessData } from "@/types/auth/auth.types"
-import { RoomFilters } from "@/types/rooms/room.types"
+import { Room, RoomFilters } from "@/types/rooms/room.types"
 import { useGetFloors } from "@/hooks/floors/queries/useGetFloors"
 import { useGetRoom } from "@/hooks/rooms/queries/useGetRoom"
 
 interface StudentFormProps {
   student?: RegisterStudentForm;
+  defaultRoom?: Room;
   onOpenChange: (val: boolean) => void;
 }
 
@@ -55,7 +56,7 @@ const StudentForm = (props: StudentFormProps) => {
 
   const { data: rooms } = useGetRooms(roomFilters, { enabled: !!messId._id });
   const roomOptions = useMemo(() => {
-    const opts = rooms?.map((room) => ({ _id: room._id, roomNo: Number(room.roomNo) })) ?? [];
+    const opts = rooms?.data?.map((room) => ({ _id: room._id, roomNo: Number(room.roomNo) })) ?? [];
     // The currently selected room may not be "vacant" (e.g. it's occupied by
     // the student being edited), so it won't come back from the vacant-only
     // rooms query. Keep it in the list so the field can still display it.
@@ -87,21 +88,24 @@ const StudentForm = (props: StudentFormProps) => {
       name: props.student?.name ?? "",
       rollNo: props.student?.rollNo ?? "",
       mobileNo: props.student?.mobileNo ?? "",
-      roomId: props.student?.roomId ?? {
+      roomId: props.student?.roomId ?? (props.defaultRoom ? {
+        _id: props.defaultRoom._id,
+        roomNo: Number(props.defaultRoom.roomNo),
+      } : {
         _id: "",
         roomNo: 0,
-      },
-      messId: props.student?.messId ?? {
+      }),
+      messId: props.student?.messId ?? props.defaultRoom?.messId ?? {
         _id: "",
         messBlock: "",
       },
       slot: props.student?.slot ?? "",
-      floorId: props.student?.floorId ?? {
+      floorId: props.student?.floorId ?? props.defaultRoom?.floorId ?? {
         _id: "",
         floorNo: 0
       },
     })
-  }, [reset, props.student])
+  }, [reset, props.student, props.defaultRoom])
 
   const onSubmit = async (data: RegisterStudentForm) => {
     try {
