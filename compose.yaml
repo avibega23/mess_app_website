@@ -1,7 +1,7 @@
 services:
   website:
     build: .
-    container_name: backend
+    container_name: frontend
     restart: unless-stopped
 
     env_file:
