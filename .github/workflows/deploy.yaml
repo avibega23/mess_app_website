@@ -22,7 +22,7 @@ jobs:
           script : |
             set -e
 
-            cd /website
+            cd /mess_app_website
 
             git pull origin main
 
