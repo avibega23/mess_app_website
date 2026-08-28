@@ -1,5 +1,7 @@
 "use client"
 
+import { useState } from "react"
+
 import {
   Dialog,
   DialogContent,
@@ -27,12 +29,19 @@ export function StudentFormDialog({
   student,
   defaultRoom,
 }: StudentFormDialogProps) {
-
+  const [busy, setBusy] = useState(false)
   const isEdit = !!student;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        if (!next && busy) return
+        onOpenChange(next)
+      }}
+      disablePointerDismissal={busy}
+    >
+      <DialogContent showCloseButton={!busy}>
         <DialogHeader>
           <DialogTitle>{isEdit ? "Edit Student" : "Register Student"}</DialogTitle>
           <DialogDescription>
@@ -41,7 +50,12 @@ export function StudentFormDialog({
               : "Add a student to a room that has a free slot."}
           </DialogDescription>
         </DialogHeader>
-        <StudentForm student={student} defaultRoom={defaultRoom} onOpenChange={onOpenChange} />
+        <StudentForm
+          student={student}
+          defaultRoom={defaultRoom}
+          onOpenChange={onOpenChange}
+          onPendingChange={setBusy}
+        />
       </DialogContent>
     </Dialog>
   )

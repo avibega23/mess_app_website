@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { useClearStudents } from "@/hooks/students/mutations/useClearStudents"
+import { getErrorMessage } from "@/lib/utils"
 
 const CONFIRM_WORD = "CLEAR"
 
@@ -28,16 +29,26 @@ export function ClearStudentsDialog({
     studentCount,
 }: ClearStudentsDialogProps) {
     const [confirmText, setConfirmText] = useState("")
+    const [error, setError] = useState<string | null>(null)
     const clearStudents = useClearStudents()
 
     const handleOpenChange = (next: boolean) => {
-        if (!next) setConfirmText("")
+        if (!next && clearStudents.isPending) return
+        if (!next) {
+            setConfirmText("")
+            setError(null)
+        }
         onOpenChange(next)
     }
 
     const handleClear = async () => {
-        await clearStudents.mutateAsync()
-        handleOpenChange(false)
+        setError(null)
+        try {
+            await clearStudents.mutateAsync()
+            handleOpenChange(false)
+        } catch (err) {
+            setError(getErrorMessage(err, "Failed to clear students"))
+        }
     }
 
     return (
@@ -61,11 +72,18 @@ export function ClearStudentsDialog({
                         onChange={(e) => setConfirmText(e.target.value)}
                         placeholder={CONFIRM_WORD}
                         autoComplete="off"
+                        disabled={clearStudents.isPending}
                     />
                 </div>
 
+                {error && <p className="text-sm text-destructive">{error}</p>}
+
                 <AlertDialogFooter>
-                    <Button variant="outline" onClick={() => handleOpenChange(false)}>
+                    <Button
+                        variant="outline"
+                        disabled={clearStudents.isPending}
+                        onClick={() => handleOpenChange(false)}
+                    >
                         Cancel
                     </Button>
                     <Button

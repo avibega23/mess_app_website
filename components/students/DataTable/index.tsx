@@ -31,6 +31,7 @@ export default function StudentDataTable() {
   const router = useRouter()
 
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
   const [block, setBlock] = useState<MessData | null>(null)
   const [floor, setFloor] = useState<FloorData | null>(null)
   const [search, setSearch] = useState("")
@@ -52,13 +53,13 @@ export default function StudentDataTable() {
   const filters = useMemo(
     () => ({
       page,
-      pageSize: 10,
+      pageSize,
       hostelId: user?.hostelId ?? undefined,
       messId: block?._id ?? undefined,
       floor: floor?.floorNo ?? undefined,
       search: debouncedSearch ?? undefined,
     }),
-    [page, block, floor, debouncedSearch, user]
+    [page, pageSize, block, floor, debouncedSearch, user]
   )
 
   const { data, isLoading, isFetching } = useGetStudents(filters)
@@ -164,8 +165,8 @@ export default function StudentDataTable() {
   )
 
   return (
-    <div className="container mx-auto space-y-2">
-      <div>
+    <div className="container mx-auto h-full flex flex-col gap-2">
+      <div className="flex-shrink-0">
         <h1 className="text-2xl font-semibold">Students</h1>
         <p className="text-sm text-muted-foreground">
           {isLoading ? "Loading students…" : `${data?.total ?? 0} students registered`}
@@ -180,6 +181,10 @@ export default function StudentDataTable() {
         isFetching={isFetching}
         emptyMessage="No students match the current filters."
         onRowClick={(student) => router.push(`/student/${student._id}`)}
+        onPageSizeChange={(size) => {
+          setPageSize(size)
+          setPage(1)
+        }}
         pagination={
           data
             ? {

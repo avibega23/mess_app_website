@@ -1,4 +1,6 @@
 "use client"
+
+import { useState } from "react"
 import {
   AlertDialog,
   AlertDialogContent,
@@ -11,6 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { useDeleteStudent } from "@/hooks/students/mutations/useDeleteStudent"
 import { StudentResponse as Student } from "@/types/students/student.types"
+import { getErrorMessage } from "@/lib/utils"
 
 interface DeleteStudentDialogProps {
   student: Student | null
@@ -25,16 +28,28 @@ export function DeleteStudentDialog({
   onDeleted,
 }: DeleteStudentDialogProps) {
   const deleteStudent = useDeleteStudent()
+  const [error, setError] = useState<string | null>(null)
+
+  const handleOpenChange = (open: boolean) => {
+    if (!open && deleteStudent.isPending) return
+    if (!open) setError(null)
+    onOpenChange(open)
+  }
 
   const handleDelete = async () => {
     if (!student) return
-    await deleteStudent.mutateAsync(student._id)
-    onOpenChange(false)
-    onDeleted?.()
+    setError(null)
+    try {
+      await deleteStudent.mutateAsync(student._id)
+      handleOpenChange(false)
+      onDeleted?.()
+    } catch (err) {
+      setError(getErrorMessage(err, "Failed to remove student"))
+    }
   }
 
   return (
-    <AlertDialog open={!!student} onOpenChange={onOpenChange}>
+    <AlertDialog open={!!student} onOpenChange={handleOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Remove {student?.username}?</AlertDialogTitle>
@@ -42,8 +57,13 @@ export function DeleteStudentDialog({
             This frees Room {student?.roomId.roomNo} of (Block {student?.floorId.floorNo}). Bill history is kept.
           </AlertDialogDescription>
         </AlertDialogHeader>
+        {error && <p className="text-sm text-destructive">{error}</p>}
         <AlertDialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button
+            variant="outline"
+            disabled={deleteStudent.isPending}
+            onClick={() => handleOpenChange(false)}
+          >
             Cancel
           </Button>
           <Button

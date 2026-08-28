@@ -85,13 +85,14 @@ export default function RoomsTable() {
   const [floor, setFloor] = useState<FloorData | null>(null)
   const [onlyVacant, setOnlyVacant] = useState<boolean | null>(null)
   const [page, setPage] = useState<number>(1);
+  const [pageLimit, setPageLimit] = useState<number>(15);
 
   // filters are passed to the API layer, mirroring the backend contract
   const { data, isLoading, isFetching } = useGetRooms({
     messId: block?._id ?? undefined,
     floor: floor?.floorNo ?? undefined,
     vacant: onlyVacant ? "true" : "false",
-    pageLimit: 15,
+    pageLimit,
     pageNo: page
   })
 
@@ -188,8 +189,8 @@ export default function RoomsTable() {
   )
 
   return (
-    <div className="container mx-auto space-y-2">
-      <div>
+    <div className="container mx-auto h-full flex flex-col gap-2">
+      <div className="flex-shrink-0">
         <h1 className="text-2xl font-semibold">Rooms</h1>
         <p className="text-sm text-muted-foreground">
           {isLoading
@@ -199,6 +200,10 @@ export default function RoomsTable() {
       </div>
 
       <DataTable
+        onPageSizeChange={(size) => {
+          setPageLimit(size)
+          setPage(1)
+        }}
         pagination={{
           page: data?.currentPage ?? 0,
           pageSize: data?.limit ?? 0,

@@ -1,10 +1,18 @@
+import { useEffect, useMemo, useState } from "react"
+
 import { Button } from "@/components/ui/button"
 import { InputField } from "@/components/ui/input-field"
 import { ComboboxField } from "@/components/ui/combobox-field"
 import { Spinner } from "@/components/ui/spinner"
-
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { DialogFooter } from "../ui/dialog"
-import { useEffect, useMemo } from "react"
 import { useStudentForm } from "@/hooks/students/local/useStudentForm"
 import { RegisterStudentForm } from "@/types/students/student.types"
 import { useAuthStore } from "@/store/authStore"
@@ -13,11 +21,13 @@ import { MessData } from "@/types/auth/auth.types"
 import { Room, RoomFilters } from "@/types/rooms/room.types"
 import { useGetFloors } from "@/hooks/floors/queries/useGetFloors"
 import { useGetRoom } from "@/hooks/rooms/queries/useGetRoom"
+import { getErrorMessage } from "@/lib/utils"
 
 interface StudentFormProps {
   student?: RegisterStudentForm;
   defaultRoom?: Room;
   onOpenChange: (val: boolean) => void;
+  onPendingChange?: (pending: boolean) => void;
 }
 
 const StudentForm = (props: StudentFormProps) => {
@@ -29,6 +39,8 @@ const StudentForm = (props: StudentFormProps) => {
     onUpdate
   } = useStudentForm()
 
+  const [confirmData, setConfirmData] = useState<RegisterStudentForm | null>(null)
+  const [confirmError, setConfirmError] = useState<string | null>(null)
 
   const {
     register,
@@ -36,7 +48,8 @@ const StudentForm = (props: StudentFormProps) => {
     formState: { errors },
     watch,
     setValue,
-    setError
+    setError,
+    clearErrors,
   } = form;
 
   const messId = watch("messId")
@@ -80,7 +93,10 @@ const StudentForm = (props: StudentFormProps) => {
     return opts;
   }, [room, slot]);
 
-
+  useEffect(() => {
+    // Keep the parent dialog open while confirming or submitting.
+    props.onPendingChange?.(isSubmitting || !!confirmData)
+  }, [isSubmitting, confirmData, props.onPendingChange])
 
   useEffect(() => {
     reset({
@@ -108,140 +124,232 @@ const StudentForm = (props: StudentFormProps) => {
   }, [reset, props.student, props.defaultRoom])
 
   const onSubmit = async (data: RegisterStudentForm) => {
+    clearErrors("root")
+    if (!isEdit) {
+      setConfirmError(null)
+      setConfirmData(data)
+      return
+    }
+
     try {
-      if (isEdit) {
-        onUpdate(data, user?.hostelId ?? "");
-      } else {
-        onRegister(data, user?.hostelId ?? "");
-      }
+      await onUpdate(data, user?.hostelId ?? "");
       props.onOpenChange(false);
     } catch (error) {
-      if (error instanceof Error) {
-        setError("root", {
-          message: error.message
-        })
-      }
-      else setError("root", { message: "Failed To Register Student" })
+      setError("root", {
+        message: getErrorMessage(error, "Failed to update student"),
+      })
     }
   };
 
+  const handleConfirmRegister = async () => {
+    if (!confirmData) return
+    setConfirmError(null)
+    try {
+      await onRegister(confirmData, user?.hostelId ?? "");
+      setConfirmData(null)
+      props.onOpenChange(false);
+    } catch (error) {
+      setConfirmError(getErrorMessage(error, "Failed to register student"))
+    }
+  }
+
+  const detail = confirmData
+
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
-      <InputField
-        id="name"
-        label="Name"
-        placeholder="Student name"
-        error={errors.name?.message}
-        {...register("name")}
-      />
+    <>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+        <InputField
+          id="name"
+          label="Name"
+          placeholder="Student name"
+          error={errors.name?.message}
+          {...register("name")}
+        />
 
-      <InputField
-        id="rollNo"
-        label="Roll No"
-        placeholder="Student roll number"
-        error={errors.rollNo?.message}
-        {...register("rollNo")}
-      />
+        <InputField
+          id="rollNo"
+          label="Roll No"
+          placeholder="Student roll number"
+          error={errors.rollNo?.message}
+          {...register("rollNo")}
+        />
 
-      <InputField
-        id="mobileNo"
-        label="Mobile No"
-        type="tel"
-        placeholder="10 digit mobile number"
-        error={errors.mobileNo?.message}
-        {...register("mobileNo", { maxLength: 10 })}
-      />
+        <InputField
+          id="mobileNo"
+          label="Mobile No"
+          type="tel"
+          placeholder="10 digit mobile number"
+          error={errors.mobileNo?.message}
+          {...register("mobileNo", { maxLength: 10 })}
+        />
 
-      <ComboboxField
-        label="Block"
-        options={messOptions}
-        value={messId}
-        getItemKey={(item) => item._id}
-        itemToStringValue={(val) => val.messBlock}
-        onChange={(m) => {
-          setValue("messId", m ?? { _id: "", messBlock: "" }, { shouldValidate: true });
-          setValue("floorId", { _id: "", floorNo: 0 });
-          setValue("roomId", { _id: "", roomNo: 0 });
-          setValue("slot", "");
+        <ComboboxField
+          label="Block"
+          options={messOptions}
+          value={messId}
+          getItemKey={(item) => item._id}
+          itemToStringValue={(val) => val.messBlock}
+          onChange={(m) => {
+            setValue("messId", m ?? { _id: "", messBlock: "" }, { shouldValidate: true });
+            setValue("floorId", { _id: "", floorNo: 0 });
+            setValue("roomId", { _id: "", roomNo: 0 });
+            setValue("slot", "");
+          }}
+          getLabel={(m) => `Block ${m.messBlock}`}
+          placeholder="Select a Mess Block"
+          searchPlaceholder="Search by Block Label"
+          emptyMessage="No Block found."
+          error={errors.messId?._id?.message}
+        />
+
+        <ComboboxField
+          label="Floor"
+          options={floorOptions}
+          value={floorId}
+          getItemKey={(item) => item._id}
+          onChange={(f) => {
+            setValue("floorId", f ?? { _id: "", floorNo: 0 }, { shouldValidate: true });
+            setValue("roomId", { _id: "", roomNo: 0 });
+            setValue("slot", "");
+          }}
+          itemToStringValue={(val) => `Floor ${val.floorNo}`}
+          getLabel={(floor) => `Floor ${floor.floorNo}`}
+          placeholder="Select a Floor"
+          searchPlaceholder="Search Floor No."
+          emptyMessage="No Floor Found"
+          error={errors.floorId?._id?.message}
+          disabled={messId._id === ""}
+        />
+
+        <ComboboxField
+          label="Room"
+          options={roomOptions}
+          value={roomId}
+          itemToStringValue={(item) => `Room ${item.roomNo}`}
+          getItemKey={(item) => item._id}
+          onChange={(room) => {
+            setValue("roomId", room ?? { _id: "", roomNo: 0 }, { shouldValidate: true });
+            setValue("slot", "");
+          }}
+          getLabel={(room) => `Room ${room.roomNo}`}
+          placeholder="Select a room with a free slot"
+          searchPlaceholder="Search by room no or block…"
+          emptyMessage="No rooms found."
+          error={errors.roomId?._id?.message}
+          disabled={floorId._id === ""}
+        />
+
+        <ComboboxField
+          label="Slot"
+          options={slotOptions}
+          value={slot}
+          getItemKey={(item) => item}
+          onChange={(s) => setValue("slot", s ?? "", { shouldValidate: true })}
+          getLabel={(slot) => `Slot ${slot}`}
+          placeholder="Select a Slot"
+          searchPlaceholder="Search by Label"
+          emptyMessage="No Slot found."
+          error={errors.slot?.message}
+          disabled={roomId._id === ""}
+        />
+
+        {errors.root && (
+          <p className="text-sm text-destructive">{errors.root.message}</p>
+        )}
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={isSubmitting}
+            onClick={() => props.onOpenChange(false)}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting && isEdit ? (
+              <Spinner />
+            ) : isEdit ? (
+              "Save Changes"
+            ) : (
+              "Register Student"
+            )}
+          </Button>
+        </DialogFooter>
+      </form>
+
+      <AlertDialog
+        open={!!confirmData}
+        onOpenChange={(open) => {
+          if (!open && isSubmitting) return
+          if (!open) {
+            setConfirmData(null)
+            setConfirmError(null)
+          }
         }}
-        getLabel={(m) => `Block ${m.messBlock}`}
-        placeholder="Select a Mess Block"
-        searchPlaceholder="Search by Block Label"
-        emptyMessage="No Block found."
-        error={errors.messId?._id?.message}
-      />
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm registration?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Review the details below before registering this student.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
 
-      <ComboboxField
-        label="Floor"
-        options={floorOptions}
-        value={floorId}
-        getItemKey={(item) => item._id}
-        onChange={(f) => {
-          setValue("floorId", f ?? { _id: "", floorNo: 0 }, { shouldValidate: true });
-          setValue("roomId", { _id: "", roomNo: 0 });
-          setValue("slot", "");
-        }}
-        itemToStringValue={(val) => `Floor ${val.floorNo}`}
-        getLabel={(floor) => `Floor ${floor.floorNo}`}
-        placeholder="Select a Floor"
-        searchPlaceholder="Search Floor No."
-        emptyMessage="No Floor Found"
-        error={errors.floorId?._id?.message}
-        disabled={messId._id === ""}
-      />
-
-
-      <ComboboxField
-        label="Room"
-        options={roomOptions}
-        value={roomId}
-        itemToStringValue={(item) => `Room ${item.roomNo}`}
-        getItemKey={(item) => item._id}
-        onChange={(room) => {
-          setValue("roomId", room ?? { _id: "", roomNo: 0 }, { shouldValidate: true });
-          setValue("slot", "");
-        }}
-        getLabel={(room) => `Room ${room.roomNo}`}
-        placeholder="Select a room with a free slot"
-        searchPlaceholder="Search by room no or block…"
-        emptyMessage="No rooms found."
-        error={errors.roomId?._id?.message}
-        disabled={floorId._id === ""}
-      />
-
-      <ComboboxField
-        label="Slot"
-        options={slotOptions}
-        value={slot}
-        getItemKey={(item) => item}
-        onChange={(s) => setValue("slot", s ?? "", { shouldValidate: true })}
-        getLabel={(slot) => `Slot ${slot}`}
-        placeholder="Select a Slot"
-        searchPlaceholder="Search by Label"
-        emptyMessage="No Slot found."
-        error={errors.slot?.message}
-        disabled={roomId._id === ""}
-      />
-
-      {errors.root && (
-        <div className="text-sm text-destructive flex justify-center w-full">{errors.root.message}</div>
-      )}
-      <DialogFooter>
-        <Button type="button" variant="outline" onClick={() => props.onOpenChange(false)}>
-          Cancel
-        </Button>
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? (
-            <Spinner />
-          ) : isEdit ? (
-            "Save Changes"
-          ) : (
-            "Register Student"
+          {detail && (
+            <div className="space-y-1.5 rounded-md border p-4 text-sm">
+              <div className="flex justify-between gap-4">
+                <span className="text-muted-foreground">Name</span>
+                <span className="text-right font-medium">{detail.name}</span>
+              </div>
+              <div className="flex justify-between gap-4">
+                <span className="text-muted-foreground">Roll No</span>
+                <span className="text-right">{detail.rollNo}</span>
+              </div>
+              <div className="flex justify-between gap-4">
+                <span className="text-muted-foreground">Mobile</span>
+                <span className="text-right">{detail.mobileNo}</span>
+              </div>
+              <div className="flex justify-between gap-4">
+                <span className="text-muted-foreground">Block</span>
+                <span className="text-right">Block {detail.messId.messBlock}</span>
+              </div>
+              <div className="flex justify-between gap-4">
+                <span className="text-muted-foreground">Floor</span>
+                <span className="text-right">Floor {detail.floorId.floorNo}</span>
+              </div>
+              <div className="flex justify-between gap-4">
+                <span className="text-muted-foreground">Room</span>
+                <span className="text-right">Room {detail.roomId.roomNo}</span>
+              </div>
+              <div className="flex justify-between gap-4">
+                <span className="text-muted-foreground">Slot</span>
+                <span className="text-right">Slot {detail.slot}</span>
+              </div>
+            </div>
           )}
-        </Button>
-      </DialogFooter>
-    </form>
 
+          {confirmError && (
+            <p className="text-sm text-destructive">{confirmError}</p>
+          )}
+
+          <AlertDialogFooter>
+            <Button
+              variant="outline"
+              disabled={isSubmitting}
+              onClick={() => {
+                setConfirmData(null)
+                setConfirmError(null)
+              }}
+            >
+              Back
+            </Button>
+            <Button disabled={isSubmitting} onClick={handleConfirmRegister}>
+              {isSubmitting ? <Spinner /> : "Confirm Register"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }
 

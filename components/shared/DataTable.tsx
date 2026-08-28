@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -43,6 +44,14 @@ interface DataTableProps<TData, TValue> {
   skeletonRowCount?: number
   onRowClick?: (row: TData) => void
   emptyMessage?: string
+  /** Called with the largest page size that fills the available height */
+  onPageSizeChange?: (pageSize: number) => void
+  /** Height of a single data row in px used to compute the page size */
+  rowHeight?: number
+  /** Fixed extra height (toolbar + pagination + gaps) not available to rows */
+  reservedHeight?: number
+  /** Minimum page size to request from the server */
+  minPageSize?: number
 }
 
 export function DataTable<TData, TValue>({
@@ -55,6 +64,10 @@ export function DataTable<TData, TValue>({
   skeletonRowCount = pagination?.pageSize ?? 8,
   onRowClick,
   emptyMessage = "No results.",
+  onPageSizeChange,
+  rowHeight = 48,
+  reservedHeight = 0,
+  minPageSize = 5,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -64,6 +77,35 @@ export function DataTable<TData, TValue>({
       ? { manualPagination: true, pageCount: pagination.totalPages }
       : { getPaginationRowModel: getPaginationRowModel() }),
   })
+
+  const bodyRef = useRef<HTMLDivElement>(null)
+  const onPageSizeChangeRef = useRef(onPageSizeChange)
+  const lastPageSizeRef = useRef<number>(minPageSize)
+  useEffect(() => {
+    onPageSizeChangeRef.current = onPageSizeChange
+  }, [onPageSizeChange])
+
+  useEffect(() => {
+    const el = bodyRef.current
+    if (!el) return
+
+    const compute = () => {
+      const rows = Math.max(
+        minPageSize,
+        Math.floor((el.clientHeight - reservedHeight) / rowHeight)
+      )
+      if (rows !== lastPageSizeRef.current) {
+        lastPageSizeRef.current = rows
+        onPageSizeChangeRef.current?.(rows)
+      }
+    }
+
+    compute()
+
+    const observer = new ResizeObserver(compute)
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [rowHeight, reservedHeight, minPageSize])
 
   const canPrevious = pagination ? pagination.page > 1 : table.getCanPreviousPage()
   const canNext = pagination
@@ -78,16 +120,17 @@ export function DataTable<TData, TValue>({
     : undefined
 
   return (
-    <div className="space-y-4">
-      {toolbar}
+    <div className="flex-1 flex flex-col min-h-0 gap-4">
+      <div className="flex-shrink-0">{toolbar}</div>
       <div
+        ref={bodyRef}
         className={
-          "overflow-hidden rounded-md border transition-opacity" +
+          "flex-1 min-h-0 overflow-auto rounded-md border transition-opacity" +
           (isFetching ? " opacity-60" : "")
         }
       >
-        <Table>
-          <TableHeader>
+        <Table className="h-full">
+          <TableHeader className="sticky top-0 z-10 bg-background">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
@@ -141,7 +184,7 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-between py-1">
+      <div className="flex-shrink-0 flex items-center justify-between py-1">
         <p className="text-sm text-muted-foreground">
           {pagination && pagination.total > 0
             ? `Showing ${rangeStart}–${rangeEnd} of ${pagination.total}`
