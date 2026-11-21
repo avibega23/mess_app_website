@@ -2,7 +2,7 @@ name: Deploy Application To VPS
 
 on:
   push:
-   branches:
+    branches:
       - main
 
 jobs:
@@ -10,19 +10,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name : Checkout context
-        uses : actions/checkout@v4
+      - name: Checkout context
+        uses: actions/checkout@v4
 
-      - name : Deploy Via SSH
-        uses : appleboy/ssh-action@v1.0.3
-        with :
-          host : ${{secrets.SSH_VPS_HOST}}
-          username : deploy
-          key : ${{ secrets.SSH_VPS_KEY }}
-          script : |
+      - name: Deploy Via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{secrets.SSH_VPS_HOST}}
+          username: deploy
+          key: ${{ secrets.SSH_VPS_KEY }}
+          script: |
             set -e
 
-            cd /mess_app_website
+            cd /apps/mess_app_website
 
             git pull origin main
 
