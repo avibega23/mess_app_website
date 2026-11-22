@@ -88,6 +88,12 @@ export default function Home() {
 
           <div className="hidden flex-wrap items-center justify-end gap-2 sm:gap-4 md:flex">
             <Link
+              href="/support"
+              className="cursor-pointer text-xs tracking-wide text-custom-gray2 transition hover:text-custom-gray1 hover:underline sm:text-sm md:text-base"
+            >
+              Support
+            </Link>
+            <Link
               href="/privacy-policy"
               className="cursor-pointer text-xs tracking-wide text-custom-gray2 transition hover:text-custom-gray1 hover:underline sm:text-sm md:text-base"
             >

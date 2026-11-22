@@ -44,6 +44,12 @@ export function MobileNavMenu() {
         <div className="absolute top-full right-4 left-4 mt-3 rounded-xl border border-custom-gray0 bg-white/95 p-3 shadow-sm backdrop-blur sm:right-6 sm:left-6">
           <div className="flex flex-col gap-2">
             <Link
+              href="/support"
+              className="rounded-lg px-3 py-2 text-sm text-custom-gray2 transition hover:bg-custom-gray0"
+            >
+              Support
+            </Link>
+            <Link
               href="/privacy-policy"
               className="rounded-lg px-3 py-2 text-sm text-custom-gray2 transition hover:bg-custom-gray0"
             >

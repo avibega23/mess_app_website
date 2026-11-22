@@ -323,6 +323,12 @@ export default function PrivacyPolicyPage() {
 
         <div className="flex flex-col gap-3 border-t border-custom-gray0 px-6 py-5">
           <Link
+            href="/support"
+            className="text-xs font-medium text-custom-gray2 transition hover:text-custom-primary"
+          >
+            Support
+          </Link>
+          <Link
             href="/privacy-policy"
             className="text-xs font-medium text-custom-primary"
           >
