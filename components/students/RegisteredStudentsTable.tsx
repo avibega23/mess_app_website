@@ -1,17 +1,17 @@
-"use client"
+"use client";
 
-import { useEffect, useMemo, useState } from "react"
-import { keepPreviousData, useQuery } from "@tanstack/react-query"
-import { ColumnDef } from "@tanstack/react-table"
-import { Search, X } from "lucide-react"
-import axios from "axios"
+import { useEffect, useMemo, useState } from "react";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { ColumnDef } from "@tanstack/react-table";
+import { Search, X } from "lucide-react";
+import axios from "axios";
 
-import { DataTable } from "@/components/shared/DataTable"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { ApiResponse, Paginated } from "@/types/common/api.types"
-import { StudentResponse as Student } from "@/types/students/student.types"
+import { DataTable } from "@/components/shared/DataTable";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ApiResponse, Paginated } from "@/types/common/api.types";
+import { StudentResponse as Student } from "@/types/students/student.types";
 
 const columns: ColumnDef<Student>[] = [
   {
@@ -50,30 +50,30 @@ const columns: ColumnDef<Student>[] = [
       <Badge variant="outline">Floor {row.original.floorId.floorNo}</Badge>
     ),
   },
-]
+];
 
 async function fetchRegisteredStudents(params: {
-  page: number
-  pageSize: number
-  search?: string
+  page: number;
+  pageSize: number;
+  search?: string;
 }): Promise<Paginated<Student>> {
   const { data } = await axios.get<ApiResponse<Paginated<Student>>>(
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}/clerk/registered-students`,
-    { params }
-  )
-  return data.data
+    `${process.env.NEXT_PUBLIC_API_BASE_URL}clerk/registered-students`,
+    { params },
+  );
+  return data.data;
 }
 
 export default function RegisteredStudentsTable() {
-  const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(10)
-  const [search, setSearch] = useState("")
-  const [debouncedSearch, setDebouncedSearch] = useState("")
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(search), 300)
-    return () => clearTimeout(timer)
-  }, [search])
+    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const filters = useMemo(
     () => ({
@@ -81,14 +81,14 @@ export default function RegisteredStudentsTable() {
       pageSize,
       search: debouncedSearch || undefined,
     }),
-    [page, pageSize, debouncedSearch]
-  )
+    [page, pageSize, debouncedSearch],
+  );
 
   const { data, isLoading, isFetching, isError, error } = useQuery({
     queryKey: ["registered-students", filters],
     queryFn: () => fetchRegisteredStudents(filters),
     placeholderData: keepPreviousData,
-  })
+  });
 
   const toolbar = (
     <div className="flex flex-wrap items-center gap-2">
@@ -97,8 +97,8 @@ export default function RegisteredStudentsTable() {
         <Input
           value={search}
           onChange={(e) => {
-            setSearch(e.target.value)
-            setPage(1)
+            setSearch(e.target.value);
+            setPage(1);
           }}
           placeholder="Search name, mobile, room…"
           className="w-64 pl-8"
@@ -109,8 +109,8 @@ export default function RegisteredStudentsTable() {
           variant="ghost"
           size="sm"
           onClick={() => {
-            setSearch("")
-            setPage(1)
+            setSearch("");
+            setPage(1);
           }}
         >
           <X className="size-4" />
@@ -118,7 +118,7 @@ export default function RegisteredStudentsTable() {
         </Button>
       )}
     </div>
-  )
+  );
 
   return (
     <div className="container mx-auto flex h-full min-h-0 flex-col gap-2 p-4 sm:p-6">
@@ -134,8 +134,8 @@ export default function RegisteredStudentsTable() {
         {isError && (
           <p className="mt-1 text-sm text-red-500">
             {axios.isAxiosError(error)
-              ? (error.response?.data as { message?: string } | undefined)
-                  ?.message ?? error.message
+              ? ((error.response?.data as { message?: string } | undefined)
+                  ?.message ?? error.message)
               : error instanceof Error
                 ? error.message
                 : "Something went wrong"}
@@ -151,8 +151,8 @@ export default function RegisteredStudentsTable() {
         isFetching={isFetching}
         emptyMessage="No students match your search."
         onPageSizeChange={(size) => {
-          setPageSize(size)
-          setPage(1)
+          setPageSize(size);
+          setPage(1);
         }}
         pagination={
           data
@@ -167,5 +167,5 @@ export default function RegisteredStudentsTable() {
         }
       />
     </div>
-  )
+  );
 }
