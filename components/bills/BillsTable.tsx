@@ -10,16 +10,20 @@ import { DataTableRowActions } from "@/components/shared/DataTableRowAction"
 import { BillStatusBadge } from "@/components/shared/BillStatusBadge"
 import { MonthPicker } from "@/components/shared/MonthPicker"
 import { RecordPaymentDialog } from "@/components/bills/RecordPaymentDialog"
+import { Button } from "@/components/ui/button"
 
 import { useGetBills } from "@/hooks/bills/queries/useGetBills"
 import { Bill } from "@/types/bills/bill.types"
 import {
   billAmountDue,
   billBalance,
+  CURRENT_MONTH,
   formatDate,
   formatINR,
   formatMonth,
+  MONTHS,
 } from "@/lib/billing"
+import { getErrorMessage } from "@/lib/utils"
 
 interface BillColumnActions {
   onViewStudent: (bill: Bill) => void
@@ -35,7 +39,9 @@ function getBillColumns({
       accessorKey: "studentName",
       header: "Student",
       cell: ({ row }) => (
-        <span className="font-medium">{row.original.studentName}</span>
+        <span className="font-medium">
+          {row.original.studentName || "—"}
+        </span>
       ),
     },
     {
@@ -104,48 +110,77 @@ function getBillColumns({
     },
     {
       id: "actions",
-      header: () => <span className="sr-only">Actions</span>,
-      cell: ({ row }) => (
-        <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
-          <DataTableRowActions
-            row={row.original}
-            actions={[
-              { label: "View student", icon: Eye, onClick: onViewStudent },
-              {
-                label: "Record payment",
-                icon: IndianRupee,
-                onClick: onRecordPayment,
-                hidden: (bill) =>
-                  !bill.generated ||
-                  !!bill.carriedForward ||
-                  (billBalance(bill) ?? 0) <= 0,
-              },
-            ]}
-          />
-        </div>
-      ),
+      header: () => <div className="text-right">Actions</div>,
+      cell: ({ row }) => {
+        const bill = row.original
+        const canPay =
+          bill.generated &&
+          !bill.carriedForward &&
+          (billBalance(bill) ?? 0) > 0
+
+        return (
+          <div
+            className="flex items-center justify-end gap-1"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-8 gap-1.5 px-2"
+              disabled={!bill.studentId}
+              title="View student"
+              onClick={() => onViewStudent(bill)}
+            >
+              <Eye className="size-4" />
+              View
+            </Button>
+            <DataTableRowActions
+              row={bill}
+              actions={[
+                {
+                  label: "Record payment",
+                  icon: IndianRupee,
+                  onClick: onRecordPayment,
+                  hidden: () => !canPay,
+                },
+              ]}
+            />
+          </div>
+        )
+      },
     },
   ]
 }
-/*
+
 export default function BillsTable() {
   const router = useRouter()
+  const [month, setMonth] = useState(CURRENT_MONTH)
   const [page, setPage] = useState(1)
   const [paymentBill, setPaymentBill] = useState<Bill | null>(null)
 
-  const { data, isLoading, isFetching } = useGetBills({ month, page, pageSize: 10 })
+  const { data, isLoading, isFetching, isError, error, refetch } = useGetBills({
+    month,
+    page,
+    pageSize: 10,
+  })
+
+  const bills = data?.data ?? []
 
   const columns = useMemo(
     () =>
       getBillColumns({
-        onViewStudent: (bill) => router.push(`/dashboard/student/${bill.studentId}`),
+        onViewStudent: (bill) => {
+          if (!bill.studentId) return
+          router.push(`/student/${bill.studentId}`)
+        },
         onRecordPayment: setPaymentBill,
       }),
     [router]
   )
 
-  const monthGenerated = data?.data.every((b) => b.generated) ?? false
-  const dueDate = data?.data.find((b) => b.dueDate)?.dueDate
+  const monthGenerated = bills.length > 0 && bills.every((b) => b.generated)
+  const dueDate = bills.find((b) => b.dueDate)?.dueDate
 
   const toolbar = (
     <div className="flex flex-wrap items-center gap-3">
@@ -162,7 +197,7 @@ export default function BillsTable() {
           Last date to pay: {formatDate(dueDate)}
         </p>
       )}
-      {!monthGenerated && (data?.data.length ?? 0) > 0 && (
+      {!monthGenerated && bills.length > 0 && (
         <p className="text-sm text-muted-foreground">
           Diet prices not applied yet — generate {formatMonth(month)} from the
           Receipts section.
@@ -170,6 +205,10 @@ export default function BillsTable() {
       )}
     </div>
   )
+
+  const emptyMessage = isError
+    ? getErrorMessage(error, "Failed to load bills.")
+    : `No bills for ${formatMonth(month)}.`
 
   return (
     <div className="container mx-auto space-y-2">
@@ -180,22 +219,35 @@ export default function BillsTable() {
         </p>
       </div>
 
+      {isError && (
+        <p className="text-sm text-destructive">
+          Couldn’t load bills.{" "}
+          <button
+            type="button"
+            className="underline underline-offset-2"
+            onClick={() => refetch()}
+          >
+            Retry
+          </button>
+        </p>
+      )}
+
       <DataTable
         columns={columns}
-        data={data?.data ?? []}
+        data={bills}
         toolbar={toolbar}
         isLoading={isLoading}
         isFetching={isFetching}
-        emptyMessage={`No bills for ${formatMonth(month)}.`}
+        emptyMessage={emptyMessage}
         pagination={
           data
             ? {
-              page: data.page,
-              pageSize: data.pageSize,
-              total: data.total,
-              totalPages: data.totalPages,
-              onPageChange: setPage,
-            }
+                page: data.page,
+                pageSize: data.pageSize,
+                total: data.total,
+                totalPages: data.totalPages,
+                onPageChange: setPage,
+              }
             : undefined
         }
       />
@@ -207,8 +259,3 @@ export default function BillsTable() {
     </div>
   )
 }
-*/
-
-const BillsTable = () => <div></div>
-
-export default BillsTable;

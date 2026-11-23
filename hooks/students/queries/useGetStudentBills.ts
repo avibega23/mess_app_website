@@ -6,6 +6,6 @@ export const useGetStudentBills = (studentId: string) => {
     return useQuery({
         queryKey: studentKeys.bills(studentId),
         queryFn: () => getStudentBills(studentId),
-        enabled: !!studentId,
+        enabled: !!studentId && studentId !== "undefined",
     });
 };

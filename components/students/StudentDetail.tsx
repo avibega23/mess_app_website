@@ -232,7 +232,7 @@ export default function StudentDetail({ id }: { id: string }) {
       <DeleteStudentDialog
         student={deleteOpen ? student : null}
         onOpenChange={(open) => !open && setDeleteOpen(false)}
-        onDeleted={() => router.push("/dashboard/student")}
+        onDeleted={() => router.push("/student")}
       />
     </div>
   )

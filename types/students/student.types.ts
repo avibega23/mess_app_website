@@ -64,6 +64,7 @@ export type UpdateStudentRequest = RegisterStudentRequest;
 
 
 export interface StudentFilters {
+  hostelId?: string;
   messId?: string;
   search?: string;
   page?: number;

@@ -7,6 +7,7 @@ import {
 } from "@/types/students/student.types";
 import { Bill } from "@/types/bills/bill.types";
 import apiClient from "@/lib/apiClient/client";
+import { ApiBill, mapApiBills } from "@/lib/mappers/bills/mapApiBill";
 
 export const getStudents = async (
   filters: StudentFilters = {}
@@ -22,8 +23,10 @@ export const getStudentById = async (id: string): Promise<Student> => {
 };
 
 export const getStudentBills = async (studentId: string): Promise<Bill[]> => {
-  const { data } = await apiClient.get<ApiResponse<Bill[]>>(`/clerk/students/${studentId}/bills`);
-  return data.data;
+  const { data } = await apiClient.get<ApiResponse<ApiBill[]>>(
+    `/clerk/students/${studentId}/bills`
+  );
+  return mapApiBills(data.data);
 };
 
 export const registerStudent = async (

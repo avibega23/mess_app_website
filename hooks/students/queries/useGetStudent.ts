@@ -6,6 +6,6 @@ export const useGetStudent = (id: string) => {
     return useQuery({
         queryKey: studentKeys.detail(id),
         queryFn: () => getStudentById(id),
-        enabled: !!id,
+        enabled: !!id && id !== "undefined",
     });
 };

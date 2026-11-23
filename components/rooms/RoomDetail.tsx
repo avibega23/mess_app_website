@@ -60,7 +60,7 @@ export default function RoomDetail({ id }: { id: string }) {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.push("/dashboard/room")}
+            onClick={() => router.push("/room")}
           >
             <ChevronLeft className="size-5" />
           </Button>
