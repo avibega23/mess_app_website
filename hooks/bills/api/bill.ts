@@ -1,27 +1,32 @@
-import { Bill, BillFilters, RecordPaymentPayload } from "@/types/bills/bill.types";
+import {
+  Bill,
+  BillFilters,
+  RecordPaymentPayload,
+} from "@/types/bills/bill.types";
 import { ApiResponse, Paginated } from "@/types/common/api.types";
 import { ReceiptSettings } from "@/types/receipts/receipt.types";
 import apiClient from "@/lib/apiClient/client";
 import {
-    mapApiBill,
-    mapApiPaginatedBills,
+  mapApiBill,
+  mapApiBills,
+  mapApiPaginatedBills,
 } from "@/lib/mappers/bills/mapApiBill";
 
-export const getBills = async (filters: BillFilters): Promise<Paginated<Bill>> => {
-    const { data } = await apiClient.get<ApiResponse<Parameters<typeof mapApiPaginatedBills>[0]>>(
-        "/clerk/bills",
-        { params: filters }
-    );
-    return mapApiPaginatedBills(data.data);
+export const getBills = async (
+  filters: BillFilters,
+): Promise<Paginated<Bill>> => {
+  const { data } = await apiClient.get<
+    ApiResponse<Parameters<typeof mapApiPaginatedBills>[0]>
+  >("/clerk/bills", { params: filters });
+  return mapApiPaginatedBills(data.data);
 };
 
-/** All bills of a month — backend has no /month route, so we request a large page. */
+/** All bills of a month via dedicated unpaginated endpoint. */
 export const getMonthBills = async (month: string): Promise<Bill[]> => {
-    const { data } = await apiClient.get<ApiResponse<Parameters<typeof mapApiPaginatedBills>[0]>>(
-        "/clerk/bills",
-        { params: { month, page: 1, pageSize: 100 } }
-    );
-    return mapApiPaginatedBills(data.data).data;
+  const { data } = await apiClient.get<
+    ApiResponse<Parameters<typeof mapApiBills>[0]>
+  >("/clerk/bills/month", { params: { month } });
+  return mapApiBills(data.data);
 };
 
 /**
@@ -30,27 +35,26 @@ export const getMonthBills = async (month: string): Promise<Bill[]> => {
  * into each student's new bill.
  */
 export const generateMonthBills = async (
-    settings: ReceiptSettings
+  settings: ReceiptSettings,
 ): Promise<number> => {
-    const { data } = await apiClient.post<ApiResponse<number>>(
-        "/clerk/monthly-config/set",
-        settings
-    );
-    return data.data;
+  const { data } = await apiClient.post<ApiResponse<number>>(
+    "/clerk/monthly-config/set",
+    settings,
+  );
+  return data.data;
 };
 
 export const recordPayment = async (
-    billId: string,
-    payment: RecordPaymentPayload
+  billId: string,
+  payment: RecordPaymentPayload,
 ): Promise<Bill> => {
-    const { data } = await apiClient.put<ApiResponse<Parameters<typeof mapApiBill>[0]>>(
-        "/clerk/createPayment",
-        {
-            amount: payment.amount,
-            month: payment.date.slice(0, 7),
-            paymentType: "CASH",
-            billId,
-        }
-    );
-    return mapApiBill(data.data);
+  const { data } = await apiClient.put<
+    ApiResponse<Parameters<typeof mapApiBill>[0]>
+  >("/clerk/createPayment", {
+    amount: payment.amount,
+    month: payment.date.slice(0, 7),
+    paymentType: "CASH",
+    billId,
+  });
+  return mapApiBill(data.data);
 };

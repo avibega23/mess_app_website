@@ -1,7 +1,7 @@
 import { Bill, BillStatus } from "@/types/bills/bill.types";
 import { Paginated } from "@/types/common/api.types";
 
-/** Raw bill row from GET /clerk/bills or GET /clerk/students/:id/bills */
+/** Raw bill row from GET /clerk/bills, /clerk/bills/month, or /clerk/students/:id/bills */
 export interface ApiBill {
   _id?: string;
   id?: string;
