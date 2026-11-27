@@ -89,12 +89,12 @@ export default function StudentDetail({ id }: { id: string }) {
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 rounded-md border px-3 py-1.5">
-            <span className="text-sm text-muted-foreground">Account</span>
+            <span className="text-sm text-muted-foreground">Temporarily block</span>
             <BlockStudentSwitch
               studentId={student._id}
               isBlocked={!!student.isBlocked}
-              showLabel
             />
+            {student.isBlocked && <Badge variant="destructive">Blocked</Badge>}
           </div>
           <Button variant="outline" onClick={() => setEditOpen(true)}>
             <Pencil className="size-4" />
@@ -130,9 +130,9 @@ export default function StudentDetail({ id }: { id: string }) {
               </span>
             </div>
             <div className="flex justify-between gap-4">
-              <span className="text-muted-foreground">Account</span>
+              <span className="text-muted-foreground">Temporarily block</span>
               <Badge variant={student.isBlocked ? "destructive" : "outline"}>
-                {student.isBlocked ? "Blocked" : "Active"}
+                {student.isBlocked ? "Blocked" : "Not blocked"}
               </Badge>
             </div>
             <div className="flex justify-between gap-4">

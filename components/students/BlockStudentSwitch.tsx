@@ -37,15 +37,17 @@ export function BlockStudentSwitch({
     <div className={cn("flex flex-col items-start gap-1", className)}>
       <div className="flex items-center gap-2">
         <Switch
-          checked={isBlocked}
+          checked={!!isBlocked}
           disabled={blockStudent.isPending}
           onCheckedChange={handleCheckedChange}
-          aria-label={isBlocked ? "Unblock student" : "Block student"}
+          aria-label="Temporarily block"
         />
         {showLabel && (
-          <Badge variant={isBlocked ? "destructive" : "outline"}>
-            {isBlocked ? "Blocked" : "Active"}
-          </Badge>
+          isBlocked ? (
+            <Badge variant="destructive">Blocked</Badge>
+          ) : (
+            <span className="text-sm text-muted-foreground">Temporarily block</span>
+          )
         )}
       </div>
       {error && <p className="text-xs text-destructive">{error}</p>}

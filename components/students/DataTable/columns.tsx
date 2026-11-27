@@ -54,7 +54,7 @@ export function getStudentColumns({
     },
     {
       id: "account",
-      header: "Account",
+      header: "Temporarily block",
       cell: ({ row }) => (
         <div onClick={(e) => e.stopPropagation()}>
           <BlockStudentSwitch

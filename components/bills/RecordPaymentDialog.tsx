@@ -25,6 +25,7 @@ import {
     lateFineOn,
     todayISO,
 } from "@/lib/billing"
+import { getErrorMessage } from "@/lib/utils"
 
 interface RecordPaymentDialogProps {
     bill: Bill | null
@@ -69,12 +70,12 @@ export function RecordPaymentDialog({ bill, onOpenChange }: RecordPaymentDialogP
     const handleSubmit = async () => {
         try {
             await recordPayment.mutateAsync({
-                billId: bill.id,
+                bill: { studentId: bill.studentId, month: bill.month },
                 payment: { amount: parsedAmount, date },
             })
             onOpenChange(false)
         } catch (err) {
-            setError((err as Error).message)
+            setError(getErrorMessage(err, "Failed to record payment"))
         }
     }
 

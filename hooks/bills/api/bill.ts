@@ -69,16 +69,17 @@ export const generateMonthBills = async (
 };
 
 export const recordPayment = async (
-  billId: string,
+  bill: Pick<Bill, "studentId" | "month">,
   payment: RecordPaymentPayload,
 ): Promise<Bill> => {
   const { data } = await apiClient.put<
     ApiResponse<Parameters<typeof mapApiBill>[0]>
   >("/clerk/createPayment", {
+    studentId: bill.studentId,
     amount: payment.amount,
-    month: payment.date.slice(0, 7),
+    month: bill.month,
     paymentType: "CASH",
-    billId,
+    paymentDate: payment.date,
   });
   return mapApiBill(data.data);
 };
