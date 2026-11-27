@@ -12,6 +12,8 @@ export type User = {
   mobileNo: string;
   messId: string;
   hostelId: string;
+  hostelName: string;
+  messBlock: string;
 }
 
 export type MessData = {

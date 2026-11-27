@@ -4,13 +4,34 @@ import {
   RecordPaymentPayload,
 } from "@/types/bills/bill.types";
 import { ApiResponse, Paginated } from "@/types/common/api.types";
-import { ReceiptSettings } from "@/types/receipts/receipt.types";
+import {
+  GenerateMonthlyConfigPayload,
+  ReceiptSettings,
+} from "@/types/receipts/receipt.types";
 import apiClient from "@/lib/apiClient/client";
 import {
   mapApiBill,
   mapApiBills,
   mapApiPaginatedBills,
 } from "@/lib/mappers/bills/mapApiBill";
+
+function toMonthlyConfigPayload(
+  settings: ReceiptSettings,
+): GenerateMonthlyConfigPayload {
+  return {
+    month: settings.month,
+    dueDate: settings.dueDate,
+    finePerDay: settings.lateFinePerDay,
+    dietThreshold: settings.dietThreshold,
+    specialDietThreshold: settings.specialDietThreshold,
+    dietPrice: settings.dietPrice,
+    specialDietPrice: settings.specialDietPrice,
+    guestDietPrice: settings.guestDietPrice,
+    serviceCharge: settings.serviceCharge,
+    fineAbove: settings.fineThresholdAmount,
+    finePercentage: settings.finePercent,
+  };
+}
 
 export const getBills = async (
   filters: BillFilters,
@@ -22,10 +43,13 @@ export const getBills = async (
 };
 
 /** All bills of a month via dedicated unpaginated endpoint. */
-export const getMonthBills = async (month: string): Promise<Bill[]> => {
+export const getMonthBills = async (
+  month: string,
+  messId?: string,
+): Promise<Bill[]> => {
   const { data } = await apiClient.get<
     ApiResponse<Parameters<typeof mapApiBills>[0]>
-  >("/clerk/bills/month", { params: { month } });
+  >("/clerk/bills/month", { params: { month, messId } });
   return mapApiBills(data.data);
 };
 
@@ -39,7 +63,7 @@ export const generateMonthBills = async (
 ): Promise<number> => {
   const { data } = await apiClient.post<ApiResponse<number>>(
     "/clerk/monthly-config/set",
-    settings,
+    toMonthlyConfigPayload(settings),
   );
   return data.data;
 };

@@ -19,7 +19,7 @@ import {
 
 import { useGetRooms } from "@/hooks/rooms/queries/useGetRooms"
 import { RoomWithOccupancy } from "@/types/rooms/room.types"
-import { FloorData, MessData } from "@/types/auth/auth.types"
+import { FloorData } from "@/types/auth/auth.types"
 import { useAuthStore } from "@/store/authStore"
 import { useGetFloors } from "@/hooks/floors/queries/useGetFloors"
 
@@ -80,16 +80,14 @@ function getRoomColumns(
 
 export default function RoomsTable() {
   const router = useRouter()
-  const messOptions: MessData[] = useAuthStore((state) => state.messes) ?? [];
-  const [block, setBlock] = useState<MessData | null>(messOptions[0] ?? null);
+  const user = useAuthStore((state) => state.user)
   const [floor, setFloor] = useState<FloorData | null>(null)
   const [onlyVacant, setOnlyVacant] = useState<boolean | null>(null)
   const [page, setPage] = useState<number>(1);
   const [pageLimit, setPageLimit] = useState<number>(15);
 
-  // filters are passed to the API layer, mirroring the backend contract
   const { data, isLoading, isFetching } = useGetRooms({
-    messId: block?._id ?? undefined,
+    messId: user?.messId ?? undefined,
     floor: floor?.floorNo ?? undefined,
     vacant: onlyVacant ? "true" : "false",
     pageLimit,
@@ -97,10 +95,10 @@ export default function RoomsTable() {
   })
 
 
-  const { data: floorData } = useGetFloors(block?._id ?? "");
+  const { data: floorData } = useGetFloors(user?.messId ?? "");
   const floorOptions = floorData ?? [];
 
-  const hasFilters = block !== null || floor !== null || onlyVacant !== null
+  const hasFilters = floor !== null || onlyVacant !== null
 
   const columns = useMemo(
     () => getRoomColumns((room) => router.push(`/room/${room._id}`)),
@@ -111,25 +109,7 @@ export default function RoomsTable() {
 
   const toolbar = (
     <div className="flex flex-wrap items-center gap-2">
-      <Select
-        value={block}
-        onValueChange={(value) => {
-          setBlock(value as MessData | null)
-          setPage(1);
-        }}
-        itemToStringLabel={(item) => `Block ${item.messBlock}`}
-      >
-        <SelectTrigger className="w-36">
-          <SelectValue placeholder="All blocks" />
-        </SelectTrigger>
-        <SelectContent>
-          {messOptions.map((b) => (
-            <SelectItem key={b._id} value={b}>
-              Block {b.messBlock}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <Badge variant="outline">Block {user?.messBlock || "—"}</Badge>
 
       <Select
         value={floor}
@@ -138,7 +118,6 @@ export default function RoomsTable() {
           setPage(1);
         }}
         itemToStringLabel={(f) => `Floor ${f.floorNo}`}
-        disabled={!block || block?._id == ""}
       >
         <SelectTrigger className="w-36">
           <SelectValue placeholder="All floors" />
@@ -175,7 +154,6 @@ export default function RoomsTable() {
           variant="ghost"
           size="sm"
           onClick={() => {
-            setBlock(messOptions[0] ?? {});
             setFloor(null)
             setOnlyVacant(null)
             setPage(1);
@@ -195,7 +173,7 @@ export default function RoomsTable() {
         <p className="text-sm text-muted-foreground">
           {isLoading
             ? "Loading rooms…"
-            : `${data?.data.length ?? 0} rooms · ${vacantCount} with vacancy`}
+            : `Block ${user?.messBlock || "—"} · ${data?.data.length ?? 0} rooms · ${vacantCount} with vacancy`}
         </p>
       </div>
 

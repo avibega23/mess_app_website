@@ -55,11 +55,11 @@ export function ClearStudentsDialog({
         <AlertDialog open={open} onOpenChange={handleOpenChange}>
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>Clear all students?</AlertDialogTitle>
+                    <AlertDialogTitle>Clear this block&apos;s students?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        This removes all {studentCount} registered students — meant for the
-                        semester changeover. Bill history is kept, but room assignments are
-                        wiped. This cannot be undone.
+                        This removes all {studentCount} students in your mess block — meant for
+                        the semester changeover. Bill history is kept, but room assignments are
+                        wiped. Other blocks are not affected. This cannot be undone.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
 

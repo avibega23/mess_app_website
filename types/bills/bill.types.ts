@@ -38,6 +38,7 @@ export interface RecordPaymentPayload {
 
 export interface BillFilters {
     month: string;
+    messId?: string;
     page?: number;
     pageSize?: number;
 }

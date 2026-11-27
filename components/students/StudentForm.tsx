@@ -57,8 +57,14 @@ const StudentForm = (props: StudentFormProps) => {
   const roomId = watch("roomId")
   const floorId = watch("floorId")
 
-  const messOptions: MessData[] = useAuthStore((state) => state.messes) ?? [];
   const user = useAuthStore((state) => state.user);
+  const clerkMess: MessData = useMemo(
+    () => ({
+      _id: user?.messId ?? "",
+      messBlock: user?.messBlock ?? "",
+    }),
+    [user?.messId, user?.messBlock]
+  );
 
   const roomFilters: RoomFilters = useMemo(() => ({
     messId: messId._id,
@@ -111,17 +117,20 @@ const StudentForm = (props: StudentFormProps) => {
         _id: "",
         roomNo: 0,
       }),
-      messId: props.student?.messId ?? props.defaultRoom?.messId ?? {
-        _id: "",
-        messBlock: "",
-      },
+      messId: clerkMess,
       slot: props.student?.slot ?? "",
       floorId: props.student?.floorId ?? props.defaultRoom?.floorId ?? {
         _id: "",
         floorNo: 0
       },
     })
-  }, [reset, props.student, props.defaultRoom])
+  }, [reset, props.student, props.defaultRoom, clerkMess])
+
+  useEffect(() => {
+    if (clerkMess._id && messId._id !== clerkMess._id) {
+      setValue("messId", clerkMess, { shouldValidate: true })
+    }
+  }, [clerkMess, messId._id, setValue])
 
   const onSubmit = async (data: RegisterStudentForm) => {
     clearErrors("root")
@@ -183,23 +192,12 @@ const StudentForm = (props: StudentFormProps) => {
           {...register("mobileNo", { maxLength: 10 })}
         />
 
-        <ComboboxField
+        <InputField
+          id="messBlock"
           label="Block"
-          options={messOptions}
-          value={messId}
-          getItemKey={(item) => item._id}
-          itemToStringValue={(val) => val.messBlock}
-          onChange={(m) => {
-            setValue("messId", m ?? { _id: "", messBlock: "" }, { shouldValidate: true });
-            setValue("floorId", { _id: "", floorNo: 0 });
-            setValue("roomId", { _id: "", roomNo: 0 });
-            setValue("slot", "");
-          }}
-          getLabel={(m) => `Block ${m.messBlock}`}
-          placeholder="Select a Mess Block"
-          searchPlaceholder="Search by Block Label"
-          emptyMessage="No Block found."
-          error={errors.messId?._id?.message}
+          value={clerkMess.messBlock ? `Block ${clerkMess.messBlock}` : ""}
+          readOnly
+          disabled
         />
 
         <ComboboxField

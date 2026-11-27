@@ -4,6 +4,8 @@ import { BillStatus } from "@/types/bills/bill.types";
 export const ReceiptRulesSchema = z.object({
     dietPrice: z.number({ error: "Enter the diet price" }).positive("Diet price must be positive"),
     specialDietPrice: z.number({ error: "Enter the special diet price" }).positive("Special diet price must be positive"),
+    guestDietPrice: z.number({ error: "Enter the guest diet price" }).min(0),
+    serviceCharge: z.number({ error: "Required" }).min(0),
     dietThreshold: z.number({ error: "Required" }).int().min(0),
     specialDietThreshold: z.number({ error: "Required" }).int().min(0),
     fineThresholdAmount: z.number({ error: "Required" }).min(0),
@@ -18,12 +20,29 @@ export const ReceiptSettingsSchema = ReceiptRulesSchema.extend({
 });
 export type ReceiptSettings = z.infer<typeof ReceiptSettingsSchema>;
 
+/** Payload shape expected by POST /clerk/monthly-config/set */
+export type GenerateMonthlyConfigPayload = {
+    month: string;
+    dueDate: string;
+    finePerDay: number;
+    dietThreshold: number;
+    specialDietThreshold: number;
+    dietPrice: number;
+    specialDietPrice: number;
+    guestDietPrice: number;
+    serviceCharge: number;
+    fineAbove: number;
+    finePercentage: number;
+};
+
 export const DEFAULT_RECEIPT_RULES = {
     dietThreshold: 20,
     specialDietThreshold: 2,
     fineThresholdAmount: 5000,
     finePercent: 5,
     lateFinePerDay: 10,
+    guestDietPrice: 0,
+    serviceCharge: 0,
 } as const;
 
 export interface ComputedReceipt {

@@ -26,7 +26,7 @@ export const useAuthStore = create<AuthState>()(
       setToken: (token) => set({ token }),
       setRefreshToken: (refreshToken:string) => set({ refreshToken }),
       setUser: (user: User) => set({ user }),
-      logout: () => set({ token: null, refreshToken: null, user: null }),
+      logout: () => set({ token: null, refreshToken: null, user: null, messes: null }),
 
       isAuthenticated: () => !!get().token,
       setMesses: (messes: MessData[]) => set({ messes }),

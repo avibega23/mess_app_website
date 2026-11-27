@@ -60,6 +60,7 @@ import {
   ReceiptRules,
   ReceiptRulesSchema,
 } from "@/types/receipts/receipt.types"
+import { useAuthStore } from "@/store/authStore"
 
 interface ReceiptRow {
   billId: string
@@ -86,6 +87,7 @@ export default function ReceiptWorkbench() {
   const [month, setMonth] = useState(CURRENT_MONTH)
   const [confirmRegenerate, setConfirmRegenerate] = useState(false)
   const [paymentBill, setPaymentBill] = useState<Bill | null>(null)
+  const user = useAuthStore((state) => state.user)
 
   const monthIndex = MONTHS.indexOf(month)
   const prevMonth = monthIndex > 0 ? MONTHS[monthIndex - 1] : null
@@ -223,8 +225,8 @@ export default function ReceiptWorkbench() {
         <div>
           <h1 className="text-2xl font-semibold">Receipts</h1>
           <p className="text-sm text-muted-foreground">
-            Apply diet prices, thresholds and fines, then generate the month&apos;s
-            bills
+            {user?.hostelName || "Hostel"} · Block {user?.messBlock || "—"} — apply
+            diet prices, thresholds and fines, then generate this block&apos;s bills
           </p>
         </div>
         <MonthPicker months={MONTHS} value={month} onChange={setMonth} />
@@ -242,6 +244,8 @@ export default function ReceiptWorkbench() {
             <div className="grid grid-cols-2 gap-3">
               {numberField("dietPrice", "Diet price (₹)")}
               {numberField("specialDietPrice", "Special diet price (₹)")}
+              {numberField("guestDietPrice", "Guest diet price (₹)")}
+              {numberField("serviceCharge", "Service charge (₹)")}
               {numberField("dietThreshold", "Min diets billed")}
               {numberField("specialDietThreshold", "Min special diets")}
               {numberField("fineThresholdAmount", "Fine above (₹)")}
@@ -423,12 +427,31 @@ export default function ReceiptWorkbench() {
 
       {/* Only this area is visible when printing / saving as PDF */}
       <div className="receipt-print-area hidden">
-        <h1 className="text-xl font-bold">Mess Bills — {formatMonth(month)}</h1>
-        <p className="mb-4 text-sm">
-          Generated on {formatDate(todayISO())} · {rows.length} students · Grand
-          total {printable ? formatINR(grandTotal) : "—"}
-          {rules.dueDate ? ` · Last date to pay: ${formatDate(rules.dueDate)}` : ""}
-        </p>
+        <div className="mb-4 border-b border-black pb-3">
+          <h1 className="text-2xl font-bold">{user?.hostelName || "Hostel"}</h1>
+          <p className="text-base font-semibold">
+            Mess Block {user?.messBlock || "—"}
+          </p>
+          <h2 className="mt-2 text-lg font-bold">
+            Mess Bills — {formatMonth(month)}
+          </h2>
+          <p className="mt-1 text-sm">
+            Generated on {formatDate(todayISO())} · {rows.length} students · Grand
+            total {printable ? formatINR(grandTotal) : "—"}
+            {rules.dueDate ? ` · Last date to pay: ${formatDate(rules.dueDate)}` : ""}
+          </p>
+          <p className="mt-2 text-xs">
+            Diet ₹{Number.isFinite(rules.dietPrice) ? rules.dietPrice : "—"} · Special ₹
+            {Number.isFinite(rules.specialDietPrice) ? rules.specialDietPrice : "—"} · Guest ₹
+            {Number.isFinite(rules.guestDietPrice) ? rules.guestDietPrice : "—"} · Service ₹
+            {Number.isFinite(rules.serviceCharge) ? rules.serviceCharge : "—"} · Min diets{" "}
+            {Number.isFinite(rules.dietThreshold) ? rules.dietThreshold : "—"} · Min special{" "}
+            {Number.isFinite(rules.specialDietThreshold) ? rules.specialDietThreshold : "—"} · Fine above ₹
+            {Number.isFinite(rules.fineThresholdAmount) ? rules.fineThresholdAmount : "—"} (
+            {Number.isFinite(rules.finePercent) ? rules.finePercent : "—"}%) · Late fine ₹
+            {Number.isFinite(rules.lateFinePerDay) ? rules.lateFinePerDay : "—"}/day
+          </p>
+        </div>
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr>

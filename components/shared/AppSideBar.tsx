@@ -32,6 +32,7 @@ const navItems = [
 export default function AppSidebar() {
   const pathname = usePathname();
   const logout = useAuthStore((state) => state.logout);
+  const user = useAuthStore((state) => state.user);
   const router = useRouter();
 
   const handleLogout = () => {
@@ -42,7 +43,12 @@ export default function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="px-4 py-5">
-        <h2 className="text-lg font-semibold">Mess Panel</h2>
+        <h2 className="text-lg font-semibold leading-tight">
+          {user?.hostelName || "Mess Panel"}
+        </h2>
+        <p className="mt-1 text-sm font-medium text-foreground">
+          Block {user?.messBlock || "—"}
+        </p>
         <p className="text-xs text-muted-foreground">Clerk Dashboard</p>
       </SidebarHeader>
 

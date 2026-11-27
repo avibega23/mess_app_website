@@ -24,6 +24,7 @@ import {
   MONTHS,
 } from "@/lib/billing"
 import { getErrorMessage } from "@/lib/utils"
+import { useAuthStore } from "@/store/authStore"
 
 interface BillColumnActions {
   onViewStudent: (bill: Bill) => void
@@ -159,8 +160,10 @@ export default function BillsTable() {
   const [page, setPage] = useState(1)
   const [paymentBill, setPaymentBill] = useState<Bill | null>(null)
 
+  const messId = useAuthStore((state) => state.user?.messId)
   const { data, isLoading, isFetching, isError, error, refetch } = useGetBills({
     month,
+    messId,
     page,
     pageSize: 10,
   })

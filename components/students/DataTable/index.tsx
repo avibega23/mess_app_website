@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { Plus, Search, Trash2, X } from "lucide-react"
 
 import { DataTable } from "@/components/shared/DataTable"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -23,7 +24,7 @@ import { DeleteStudentDialog } from "@/components/students/DeleteStudentDialog"
 import { useGetStudents } from "@/hooks/students/queries/useGetStudents"
 import { RegisterStudentForm, StudentResponse as Student } from "@/types/students/student.types"
 import { useAuthStore } from "@/store/authStore"
-import { FloorData, MessData } from "@/types/auth/auth.types"
+import { FloorData } from "@/types/auth/auth.types"
 import { useGetFloors } from "@/hooks/floors/queries/useGetFloors"
 import { toRegisterStudentForm } from "@/lib/mappers/students/studentResponseToFormMapper"
 
@@ -32,7 +33,6 @@ export default function StudentDataTable() {
 
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
-  const [block, setBlock] = useState<MessData | null>(null)
   const [floor, setFloor] = useState<FloorData | null>(null)
   const [search, setSearch] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
@@ -41,7 +41,6 @@ export default function StudentDataTable() {
   const [clearOpen, setClearOpen] = useState(false)
   const [editStudent, setEditStudent] = useState<RegisterStudentForm | null>(null)
   const [deleteStudent, setDeleteStudent] = useState<Student | null>(null)
-  const messes = useAuthStore((state) => state.messes)
   const user = useAuthStore((state) => state.user)
 
   useEffect(() => {
@@ -49,27 +48,25 @@ export default function StudentDataTable() {
     return () => clearTimeout(timer)
   }, [search])
 
-  // filters are sent to the API — the backend does the actual filtering
   const filters = useMemo(
     () => ({
       page,
       pageSize,
       hostelId: user?.hostelId ?? undefined,
-      messId: block?._id ?? undefined,
+      messId: user?.messId ?? undefined,
       floor: floor?.floorNo ?? undefined,
       search: debouncedSearch ?? undefined,
     }),
-    [page, pageSize, block, floor, debouncedSearch, user]
+    [page, pageSize, floor, debouncedSearch, user]
   )
 
   const { data, isLoading, isFetching } = useGetStudents(filters)
-  const { data: floorData } = useGetFloors(block?._id ?? "");
-  const floors = floorData || [];
+  const { data: floorData } = useGetFloors(user?.messId ?? "")
+  const floors = floorData || []
 
-  const hasFilters = block !== null || floor !== null || search !== ""
+  const hasFilters = floor !== null || search !== ""
 
   const resetFilters = () => {
-    setBlock(null)
     setFloor(null)
     setSearch("")
     setPage(1)
@@ -101,26 +98,7 @@ export default function StudentDataTable() {
           />
         </div>
 
-        <Select
-          value={block}
-          onValueChange={(value) => {
-            setBlock(value as MessData | null)
-            setPage(1)
-          }}
-          itemToStringLabel={(value) => value ? `Block ${value.messBlock}` : "All blocks"}
-        >
-          <SelectTrigger className="w-36">
-            <SelectValue placeholder="All blocks" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={null}>All blocks</SelectItem>
-            {messes?.map((b) => (
-              <SelectItem key={b._id} value={b}>
-                Block {b.messBlock}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Badge variant="outline">Block {user?.messBlock || "—"}</Badge>
 
         <Select
           value={floor}
@@ -130,7 +108,7 @@ export default function StudentDataTable() {
           }}
           itemToStringLabel={(value) => value ? `Floor ${value.floorNo}` : "All Floors"}
         >
-          <SelectTrigger className="w-36" disabled={block == null}>
+          <SelectTrigger className="w-36">
             <SelectValue placeholder="All floors" />
           </SelectTrigger>
           <SelectContent>
@@ -169,7 +147,9 @@ export default function StudentDataTable() {
       <div className="flex-shrink-0">
         <h1 className="text-2xl font-semibold">Students</h1>
         <p className="text-sm text-muted-foreground">
-          {isLoading ? "Loading students…" : `${data?.total ?? 0} students registered`}
+          {isLoading
+            ? "Loading students…"
+            : `${data?.total ?? 0} students in Block ${user?.messBlock || "—"}`}
         </p>
       </div>
 

@@ -68,6 +68,12 @@ export default function LoginPage() {
   return (
     <div className='w-screen h-screen flex justify-center items-center bg-custom-background px-4'>
       <form onSubmit={handleSubmit(onSubmit)} className="flex w-full max-w-sm flex-col gap-4 rounded-xl bg-background p-8 shadow-lg ring-1 ring-custom-gray0">
+        <div className="mb-2 space-y-1 text-center">
+          <h1 className="text-xl font-semibold">Clerk Portal</h1>
+          <p className="text-sm text-muted-foreground">
+            Sign in to manage your hostel mess block
+          </p>
+        </div>
         <input
           {...register("mobileNo", {
             required: "Mobile number is required",
