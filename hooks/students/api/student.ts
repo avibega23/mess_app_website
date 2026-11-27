@@ -47,6 +47,20 @@ export const deleteStudent = async (id: string): Promise<void> => {
   await apiClient.delete(`/clerk/students/${id}`);
 };
 
+export const blockStudent = async (id: string): Promise<Student> => {
+  const { data } = await apiClient.patch<ApiResponse<Student>>(
+    `/clerk/students/${id}/block`
+  );
+  return data.data;
+};
+
+export const unblockStudent = async (id: string): Promise<Student> => {
+  const { data } = await apiClient.patch<ApiResponse<Student>>(
+    `/clerk/students/${id}/unblock`
+  );
+  return data.data;
+};
+
 export const clearAllStudents = async (): Promise<void> => {
   await apiClient.delete("/clerk/students");
 };

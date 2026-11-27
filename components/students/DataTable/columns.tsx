@@ -6,6 +6,7 @@ import { Eye, Pencil, Trash2 } from "lucide-react"
 import { StudentResponse as Student } from "@/types/students/student.types"
 import { Badge } from "@/components/ui/badge"
 import { DataTableRowActions } from "@/components/shared/DataTableRowAction"
+import { BlockStudentSwitch } from "@/components/students/BlockStudentSwitch"
 
 interface StudentColumnActions {
   onView: (student: Student) => void
@@ -50,6 +51,19 @@ export function getStudentColumns({
       accessorKey: "floor",
       header: "Floor",
       cell: ({ row }) => <Badge variant="outline">Floor {row.original.floorId.floorNo}</Badge>,
+    },
+    {
+      id: "account",
+      header: "Account",
+      cell: ({ row }) => (
+        <div onClick={(e) => e.stopPropagation()}>
+          <BlockStudentSwitch
+            studentId={row.original._id}
+            isBlocked={!!row.original.isBlocked}
+            showLabel
+          />
+        </div>
+      ),
     },
     {
       id: "actions",

@@ -6,6 +6,7 @@ export const StudentResponseSchema = z.object({
   mobileNo: z.string().regex(/^[0-9]{10}$/, "Must be a 10 digit mobile number"),
   slot: z.string(),
   rollNo: z.string(),
+  isBlocked: z.boolean().default(false),
   roomId: z.object({
     _id: z.string(),
     roomNo: z.number()

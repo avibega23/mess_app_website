@@ -26,6 +26,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { BillStatusBadge } from "@/components/shared/BillStatusBadge"
 import { StudentFormDialog } from "@/components/students/StudentFormDialog"
 import { DeleteStudentDialog } from "@/components/students/DeleteStudentDialog"
+import { BlockStudentSwitch } from "@/components/students/BlockStudentSwitch"
 
 import { useGetStudent } from "@/hooks/students/queries/useGetStudent"
 import { useGetStudentBills } from "@/hooks/students/queries/useGetStudentBills"
@@ -86,7 +87,15 @@ export default function StudentDetail({ id }: { id: string }) {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 rounded-md border px-3 py-1.5">
+            <span className="text-sm text-muted-foreground">Account</span>
+            <BlockStudentSwitch
+              studentId={student._id}
+              isBlocked={!!student.isBlocked}
+              showLabel
+            />
+          </div>
           <Button variant="outline" onClick={() => setEditOpen(true)}>
             <Pencil className="size-4" />
             Edit
@@ -119,6 +128,12 @@ export default function StudentDetail({ id }: { id: string }) {
               <span className="font-medium">
                 {student?.messId?.messBlock} / {student?.floorId?.floorNo}
               </span>
+            </div>
+            <div className="flex justify-between gap-4">
+              <span className="text-muted-foreground">Account</span>
+              <Badge variant={student.isBlocked ? "destructive" : "outline"}>
+                {student.isBlocked ? "Blocked" : "Active"}
+              </Badge>
             </div>
             <div className="flex justify-between gap-4">
               <span className="text-muted-foreground">Outstanding</span>
